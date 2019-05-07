@@ -70,14 +70,13 @@ Create `%APPDATA%/terraform.rc` and put following content in it.
 # Installation
 Clone repo code into go project using *go get*
 ```
-    go get github.com/vmware/terraform-provider-vra7
-
+    go get github.com/terraform-providers/terraform-provider-vra7
 ```
 
 # Create Binary
 
 ## Linux and MacOS Users
-Navigate to `/home/<USER>/TerraformPluginProject/src/github.com/vmware/terraform-provider-vra7` and run go build command to generate plugin binary.
+Navigate to `/home/<USER>/TerraformPluginProject/src/github.com/terraform-providers/terraform-provider-vra7` and run go build command to generate plugin binary.
 ```
     go build -o /home/<USER>/TerraformPluginProject/bin/terraform-provider-vra7
 
