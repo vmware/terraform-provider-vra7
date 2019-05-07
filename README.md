@@ -1,95 +1,40 @@
-VMware Terraform provider for vRealize Automation 7
-===
-[![Build Status](https://travis-ci.org/vmware/terraform-provider-vra7.svg?branch=master)](https://travis-ci.org/vmware/terraform-provider-vra7)
+Terraform provider for VMware vRealize Automation 7
+==================
+
+- Website: https://www.terraform.io
+- Documentation: https://www.terraform.io/docs/providers/vra7/index.html
+- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
+
+<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
+
+Introduction
+------------
 
 A self-contained deployable integration between Terraform and vRealize Automation (vRA) which allows Terraform users to request/provision entitled vRA catalog items using Terraform. Supports Terraform destroying vRA provisioned resources.
 
-# Getting Started
-These instructions will get you a copy of the project up and run on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+Requirements
+------------
 
-# Prerequisites
-To get the vRA plugin up and running you need the following things.
 * [Terraform 0.9 or above](https://www.terraform.io/downloads.html)
 * [Go Language 1.11.4 or above](https://golang.org/dl/)
+* [vRealize Automation 7.4 or above](https://www.vmware.com/products/vrealize-automation.html)
 
-# Project Setup
-Setup a GOLang project structure as follows:
-```
-|-/home/<USER>/TerraformPluginProject/
-    |-bin/
-    |-pkg/
-    |-src/
+Using the provider
+----------------------
 
-```
+See the [vra7 documentation](https://www.terraform.io/docs/providers/vra7/index.html) to get started using the vRealize Automation 7 provider.
 
-# Environment Setup
-Set following environment variables.
+Upgrading the provider
+----------------------
 
-## Linux Users
-`GOROOT` is a golang library path.
-```
-export GOROOT=/usr/local/go
+The vra7 provider doesn't upgrade automatically once you've started using it. After a new release you can run 
+
+```bash
+terraform init -upgrade
 ```
 
-`GOPATH` is a path pointing toward the source code directory.
-```
-export GOPATH=/home/<user>/TerraformPluginProject
-```
-
-**Windows Users**
-
-*GOROOT is a golang library path*
-```
-set GOROOT=C:\Go
-```
-
-`GOPATH` is a path pointing toward the source code directory.
-```
-set GOPATH=C:\TerraformPluginProject
-```
-
-## Set terraform provider
-
-## Linux Users
-Create `~/.terraformrc` and put following content in it.
-```
-    providers {
-         vra7 = "/home/<USER>/TerraformPluginProject/bin/terraform-provider-vra7"
-    }
-```
-
-## Windows Users
-Create `%APPDATA%/terraform.rc` and put following content in it.
-```
-    providers {
-         vra7 = "C:\\TerraformPluginProject\\bin\\terraform-provider-vra7.exe"
-    }
-```
-
-
-# Installation
-Clone repo code into go project using *go get*
-```
-    go get github.com/terraform-providers/terraform-provider-vra7
-```
-
-# Create Binary
-
-## Linux and MacOS Users
-Navigate to `/home/<USER>/TerraformPluginProject/src/github.com/terraform-providers/terraform-provider-vra7` and run go build command to generate plugin binary.
-```
-    go build -o /home/<USER>/TerraformPluginProject/bin/terraform-provider-vra7
-
-```
-
-## Windows Users
-Navigate to `C:\TerraformPluginProject\src\github.com\vmware\terraform-provider-vra7` and run go build command to generate plugin binary.
-```
-    go build -o C:\TerraformPluginProject\bin\terraform-provider-vra7.exe
-
-```
-
-# Usage
+to upgrade to the latest stable version of the vra7 provider. See the [Terraform website](https://www.terraform.io/docs/configuration/providers.html#provider-versions)
+for more information on provider upgrades, and how to set version constraints on your provider.
 
 ## Configure
 The VMware vRA terraform configuration file contains two objects.
@@ -192,9 +137,40 @@ These are the Terraform commands that can be used for the vRA plugin:
 
 Navigate to the location where `main.tf` and binary are placed and use the above commands as needed.
 
+Building the provider
+---------------------
+
+Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-vra7`
+
+```sh
+$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
+$ git clone git@github.com:terraform-providers/terraform-provider-vra7
+```
+
+Enter the provider directory and build the provider
+
+```sh
+$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-vra7
+$ make build
+```
+
+Developing the provider
+---------------------------
+
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.11.4+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+
+To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+
+```sh
+$ make build
+...
+$ $GOPATH/bin/terraform-provider-vra7
+...
+```
+
 # Scripts
 
-**update_resource_state.sh**
+For some older installations prior to v0.2.0 the **update_resource_state.sh** may need to be run.
 
 There are few changes in the way the terraform config file is written.
 1. The resource name is renamed to vra7_deployment from vra7_resource.
@@ -203,8 +179,8 @@ There are few changes in the way the terraform config file is written.
 4. catalog_configuration map is removed.
 5. Custom/optional properties of deployment are to be specified in deployment_configuration instead of catalog_configuration.
 
-These changes in the config file will lead to inconsistency in the `terraform.tfstate` file of the existing resources provisioned using terraform. 
-The existing state files can be converted to the new format using the script, `update_resource_state.sh` under the scripts folder. 
+These changes in the config file will lead to inconsistency in the `terraform.tfstate` file of the existing resources provisioned using terraform.
+The existing state files can be converted to the new format using the script, `update_resource_state.sh` under the scripts folder.
 
 Note: This script will only convert the state file. The changes to the config file(.tf file) still needs to be done manually.
 
@@ -215,8 +191,16 @@ Note: This script will only convert the state file. The changes to the config fi
 3. Run the script, `./update_resource_state.sh`.
 4. The terraform.tfstate will be updated to the new format and a back-up of the old file is saved as terraform.tfstate_back
 
-# Contributing
-The `terraform-provider-vra7` project team welcomes contributions from the community. Before you start working with `terraform-provider-vra7`, please read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All contributions to this repository must be signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on as an open-source patch. For more detailed information, refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributing
+------------
 
-# License
+Terraform is the work of thousands of contributors. We appreciate your help!
+
+To contribute, please read the contribution guidelines: [Contributing to Terraform - vRealize Automation 7 Provider](CONTRIBUTING.md)
+
+Issues on GitHub are intended to be related to bugs or feature requests with provider codebase. See https://www.terraform.io/docs/extend/community/index.html for a list of community resources to ask questions about Terraform.
+
+License
+-------
+
 `terraform-provider-vra7` is available under the [Mozilla Public License, version 2.0 license](LICENSE).
