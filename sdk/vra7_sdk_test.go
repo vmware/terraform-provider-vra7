@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/vmware/terraform-provider-vra7/utils"
+	"github.com/terraform-providers/terraform-provider-vra7/utils"
 	httpmock "gopkg.in/jarcoal/httpmock.v1"
 )
 
