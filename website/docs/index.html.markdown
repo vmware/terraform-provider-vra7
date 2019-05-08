@@ -26,16 +26,17 @@ resource][tf-vra7-deployment].
 [tf-vra7-deployment]: /docs/providers/vra7/r/deployment.html
 
 ```hcl
-provider  "vra7" {
-    username = "${var.username}"
-    password  = "${var.password}"
-    tenant = "${var.tenant}"
-    host = "${var.host}"
+provider "vra7" {
+  username = "${var.username}"
+  password = "${var.password}"
+  tenant   = "${var.tenant}"
+  host     = "${var.host}"
 }
 
 resource "vra7_deployment" "machine" {
-  count            = 1
+  count             = 1
   catalog_item_name = "CentOS 7.0 x64"
+
   resource_configuration = {
     Linux.cpu = "2"
   }
@@ -71,8 +72,6 @@ The following arguments are used to configure the VMware vRA7 Provider:
 enabled when instructed to do so by HashiCorp for the purposes of
 troubleshooting issues with the provider, or when attempting to perform your
 own troubleshooting. Use them at your own risk and do not leave them enabled!
-
-* ***Add info here on debuggings ***
 
 ## Bug Reports and Contributing
 
