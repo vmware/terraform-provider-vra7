@@ -40,6 +40,14 @@ errcheck:
 vendor-status:
 	@govendor status
 
+lint:
+	@echo "==> Checking source code against linters..."
+	@GOGC=30 golangci-lint run ./$(PKG_NAME)
+
+tools:
+	GO111MODULE=on go install github.com/client9/misspell/cmd/misspell
+	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
+
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
 		echo "ERROR: Set TEST to a specific package. For example,"; \

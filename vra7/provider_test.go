@@ -26,7 +26,7 @@ var (
 func init() {
 
 	fmt.Println("init")
-	testAccProvider := Provider()
+	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"vra7": testAccProvider,
 	}

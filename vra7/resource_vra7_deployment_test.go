@@ -23,7 +23,8 @@ func init() {
 
 func TestConfigValidityFunction(t *testing.T) {
 
-	mockRequestTemplate := GetMockRequestTemplate()
+	mockRequestTemplate, err := GetMockRequestTemplate()
+	utils.AssertNilError(t, err)
 
 	// a resource_configuration map is created with valid components
 	// all combinations of components name and properties are created with dots
@@ -43,7 +44,7 @@ func TestConfigValidityFunction(t *testing.T) {
 	p := readProviderConfiguration(mockResourceData)
 
 	readProviderConfiguration(mockResourceData)
-	err := p.checkResourceConfigValidity(mockRequestTemplate)
+	err = p.checkResourceConfigValidity(mockRequestTemplate)
 	utils.AssertNilError(t, err)
 
 	mockConfigResourceMap["machine2.mock.cpu"] = 2
@@ -81,12 +82,15 @@ func TestConfigValidityFunction(t *testing.T) {
 }
 
 // creates a mock request template from a request template template json file
-func GetMockRequestTemplate() *sdk.CatalogItemRequestTemplate {
+func GetMockRequestTemplate() (*sdk.CatalogItemRequestTemplate, error) {
 
 	mockRequestTemplateStruct := sdk.CatalogItemRequestTemplate{}
-	json.Unmarshal([]byte(mockRequestTemplate), &mockRequestTemplateStruct)
+	err := json.Unmarshal([]byte(mockRequestTemplate), &mockRequestTemplateStruct)
+	if err != nil {
+		return nil, err
+	}
 
-	return &mockRequestTemplateStruct
+	return &mockRequestTemplateStruct, nil
 
 }
 

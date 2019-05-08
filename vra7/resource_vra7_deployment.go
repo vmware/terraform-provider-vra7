@@ -281,8 +281,8 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 							return fmt.Errorf("Error retrieving reconfigure action template for the component %v: %v ", componentName, err.Error())
 						}
 						configChanged := false
-						returnFlag := false
 						for configKey := range p.ResourceConfiguration {
+							var returnFlag bool
 							//compare resource list (resource_name) with user configuration fields
 							if strings.HasPrefix(configKey, componentName+".") {
 								//If user_configuration contains resource_list element
@@ -295,14 +295,14 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 									resourceActionTemplate.Data,
 									nameList[1],
 									p.ResourceConfiguration[configKey])
-								if returnFlag == true {
+								if returnFlag {
 									configChanged = true
 								}
 							}
 						}
 						oldData, _ := d.GetChange("resource_configuration")
 						// If template value got changed then set post call and update resource child
-						if configChanged != false {
+						if configChanged {
 							// This request id is for the reconfigure action on this machine and
 							// will be used to track the status of the reconfigure request for this resource.
 							// It will not replace the initial catalog item request id
@@ -377,9 +377,8 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 	resourceConfiguration, _ := d.Get("resource_configuration").(map[string]interface{})
-	changed := false
 
-	resourceConfiguration, changed = utils.UpdateResourceConfigurationMap(resourceConfiguration, resourceDataMap)
+	resourceConfiguration, changed := utils.UpdateResourceConfigurationMap(resourceConfiguration, resourceDataMap)
 
 	if changed {
 		setError := d.Set("resource_configuration", resourceConfiguration)
