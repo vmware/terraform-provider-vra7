@@ -113,6 +113,10 @@ func resourceVra7Deployment() *schema.Resource {
 					Elem:     schema.TypeString,
 				},
 			},
+			"ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -374,12 +378,12 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			dataVals[sdk.MachineID] = resourceData.MachineID
 			dataVals[sdk.MachineGroupName] = resourceData.MachineGroupName
 			dataVals[sdk.MachineDestructionDate] = resourceData.MachineDestructionDate
+			d.Set("ip_address", resourceData.IPAddress)
 		}
 	}
 	resourceConfiguration, _ := d.Get("resource_configuration").(map[string]interface{})
 
 	resourceConfiguration, changed := utils.UpdateResourceConfigurationMap(resourceConfiguration, resourceDataMap)
-
 	if changed {
 		setError := d.Set("resource_configuration", resourceConfiguration)
 		if setError != nil {
