@@ -97,21 +97,13 @@ func resourceVra7Deployment() *schema.Resource {
 			"deployment_configuration": {
 				Type:     schema.TypeMap,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:     schema.TypeMap,
-					Optional: true,
-					Elem:     schema.TypeString,
-				},
+				Elem:     schema.TypeString,
 			},
 			"resource_configuration": {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type:     schema.TypeMap,
-					Optional: true,
-					Elem:     schema.TypeString,
-				},
+				Elem:     schema.TypeString,
 			},
 		},
 	}
