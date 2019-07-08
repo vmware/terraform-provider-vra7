@@ -1,4 +1,12 @@
-variable username {}
-variable password {}
-variable tenant {}
-variable host {}
+variable "username" {
+}
+
+variable "password" {
+}
+
+variable "tenant" {
+}
+
+variable "host" {
+}
+
