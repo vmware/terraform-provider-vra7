@@ -234,9 +234,9 @@ deployment_configuration = {
 	deployment_property = "updated custom deployment property"
 }
 resource_configuration = {
-	vSphereVM1.cpu = 1
-	vSphereVM1.memory = 1024
-	vSphereVM1.machine_property = "updated machine custom property"
+	"vSphereVM1.cpu" = 1
+	"vSphereVM1.memory" = 1024
+	"vSphereVM1.machine_property" = "updated machine custom property"
 }
 wait_timeout = 20
 businessgroup_name = "Development"
@@ -256,9 +256,9 @@ deployment_configuration = {
 	deployment_property = "custom deployment property"
 }
 resource_configuration = {
-	vSphereVM1.cpu = 1
-	vSphereVM1.memory = 2048
-	vSphereVM1.machine_property = "machine custom property"
+	"vSphereVM1.cpu" = 1
+	"vSphereVM1.memory" = 2048
+	"vSphereVM1.machine_property" = "machine custom property"
 }
 wait_timeout = 20
 businessgroup_name = "Development"
