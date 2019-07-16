@@ -97,13 +97,13 @@ resource "vra7_deployment" "example_machine1" {
   reasons      = "I have some"
   description  = "deployment via terraform"
    resource_configuration = {
-         Linux.cpu = "1"
-         Windows2008R2SP1.cpu =  "2"
-         Windows2012.cpu =  "4"
-         Windows2016.cpu =  "2"
+         "Linux.cpu" = "1"
+         "Windows2008R2SP1.cpu" =  "2"
+         "Windows2012.cpu" =  "4"
+         "Windows2016.cpu" =  "2"
      }
      deployment_configuration = {
-         _leaseDays = "5"
+         "_leaseDays" = "5"
      }
      count = 3
 }
@@ -114,10 +114,10 @@ resource "vra7_deployment" "example_machine1" {
 resource "vra7_deployment" "example_machine2" {
   catalog_item_id = "e5dd4fba7f96239286be45ed"
    resource_configuration = {
-         Linux.cpu = "1"
-         Windows2008.cpu =  "2"
-         Windows2012.cpu =  "4"
-         Windows2016.cpu =  "2"
+         "Linux.cpu" = "1"
+         "Windows2008.cpu" =  "2"
+         "Windows2012.cpu" =  "4"
+         "Windows2016.cpu" =  "2"
      }
      count = 4
 }

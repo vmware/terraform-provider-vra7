@@ -38,7 +38,7 @@ resource "vra7_deployment" "machine" {
   catalog_item_name = "CentOS 7.0 x64"
 
   resource_configuration = {
-    Linux.cpu = "2"
+    "Linux.cpu" = "2"
   }
 }
 ```
