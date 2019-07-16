@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -115,4 +116,47 @@ func AddValueToRequestTemplate(templateInterface map[string]interface{}, field s
 	}
 	//Return updated map interface type
 	return templateInterface
+}
+
+// Flatten takes a generic map of maps and flattens the properties via a dot seperator.
+func Flatten(m map[string]interface{}) map[string]interface{} {
+	o := make(map[string]interface{})
+	for k, v := range m {
+		switch child := v.(type) {
+		case map[string]interface{}:
+			nm := Flatten(child)
+			for nk, nv := range nm {
+				o[k+"."+nk] = nv
+			}
+		default:
+			o[k] = v
+		}
+	}
+	return o
+}
+
+// FlattenJSON takes a generic map of maps (representing nested json data) and flattens the properties via a do seperator.
+func FlattenJSON(jsonMap map[string]interface{}, key string) map[string]interface{} {
+	viewData := make(map[string]interface{})
+
+	value := jsonMap[key]
+	if value == nil {
+		value = ""
+	}
+
+	if reflect.TypeOf(value).String() == "[]interface {}" {
+		for _, data := range value.([]interface{}) {
+			if reflect.TypeOf(data).String() == "map[string]interface {}" {
+				res := Flatten(data.(map[string]interface{}))
+				for nestedKey := range res {
+					viewData[fmt.Sprintf("%s.%s", key, nestedKey)] = fmt.Sprintf("%v", res[nestedKey])
+				}
+			} else {
+				viewData[key] = fmt.Sprintf("%v", data)
+			}
+		}
+	} else {
+		viewData[key] = fmt.Sprintf("%v", value)
+	}
+	return viewData
 }
