@@ -13,7 +13,7 @@ resource "vra7_deployment" "vm" {
   count = var.count
 
   deployment_configuration = {
-    VirtualMachine.Disk1.Size = var.extra_disk
+    "VirtualMachine.Disk1.Size" = var.extra_disk
   }
 
   resource_configuration = {
@@ -28,7 +28,7 @@ resource "vra7_deployment" "vm" {
   // Connection settings
   // Connection settings
   connection {
-    host     = self.resource_configuration.Machine.ip_address
+    host     = self.resource_configuration["Machine.ip_address"]
     user     = var.ssh_user
     password = var.ssh_password
   }
