@@ -311,9 +311,9 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 							if err != nil {
 								// if the update request fails, go back to the old state and return the error
 								if status == sdk.Failed {
-									err = d.Set("resource_configuration", oldData)
-									if err != nil {
-										return err
+									setErr := d.Set("resource_configuration", oldData)
+									if setErr != nil {
+										return setErr
 									}
 								}
 								return err
@@ -571,26 +571,24 @@ func waitForRequestCompletion(d *schema.ResourceData, meta interface{}, requestI
 
 	waitTimeout := d.Get("wait_timeout").(int) * 60
 	sleepFor := 30
-	requestStatus := ""
 	for i := 0; i < waitTimeout/sleepFor; i++ {
 		log.Info("Waiting for %d seconds before checking request status.", sleepFor)
 		time.Sleep(time.Duration(sleepFor) * time.Second)
-
 		reqestStatusView, _ := vraClient.GetRequestStatus(requestID)
 		status := reqestStatusView.Phase
 		d.Set("request_status", status)
-		log.Info("Checking to see the status of the request. Status: %s.", requestStatus)
+		log.Info("Checking to see the status of the request. Status: %s.", status)
 		if status == sdk.Successful {
 			log.Info("Request is SUCCESSFUL.")
 			return sdk.Successful, nil
 		} else if status == sdk.Failed {
-			log.Error("Request Failed with message %v ", d.Get("failed_message"))
-			return sdk.Failed, fmt.Errorf("Request failed \n %v ", d.Get("failed_message"))
-		} else if requestStatus == sdk.InProgress {
+			log.Error("Request Failed with message %v ", reqestStatusView.RequestCompletion.CompletionDetails)
+			return sdk.Failed, fmt.Errorf("Request failed \n %v ", reqestStatusView.RequestCompletion.CompletionDetails)
+		} else if status == sdk.InProgress {
 			log.Info("The request is still IN PROGRESS. Please try again later. \nRun terraform refresh to get the latest state of your request")
 			return sdk.InProgress, nil
 		} else {
-			log.Info("Request status: %s.", requestStatus)
+			log.Info("Request status: %s.", status)
 		}
 	}
 	// The execution has timed out while still IN PROGRESS.
