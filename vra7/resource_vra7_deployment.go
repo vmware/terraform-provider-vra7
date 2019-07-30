@@ -571,11 +571,12 @@ func waitForRequestCompletion(d *schema.ResourceData, meta interface{}, requestI
 
 	waitTimeout := d.Get("wait_timeout").(int) * 60
 	sleepFor := 30
+	status := ""
 	for i := 0; i < waitTimeout/sleepFor; i++ {
 		log.Info("Waiting for %d seconds before checking request status.", sleepFor)
 		time.Sleep(time.Duration(sleepFor) * time.Second)
 		reqestStatusView, _ := vraClient.GetRequestStatus(requestID)
-		status := reqestStatusView.Phase
+		status = reqestStatusView.Phase
 		d.Set("request_status", status)
 		log.Info("Checking to see the status of the request. Status: %s.", status)
 		if status == sdk.Successful {
@@ -585,15 +586,14 @@ func waitForRequestCompletion(d *schema.ResourceData, meta interface{}, requestI
 			log.Error("Request Failed with message %v ", reqestStatusView.RequestCompletion.CompletionDetails)
 			return sdk.Failed, fmt.Errorf("Request failed \n %v ", reqestStatusView.RequestCompletion.CompletionDetails)
 		} else if status == sdk.InProgress {
-			log.Info("The request is still IN PROGRESS. Please try again later. \nRun terraform refresh to get the latest state of your request")
-			return sdk.InProgress, nil
+			log.Info("The request is still IN PROGRESS.")
 		} else {
 			log.Info("Request status: %s.", status)
 		}
 	}
 	// The execution has timed out while still IN PROGRESS.
 	// The user will need to use 'terraform refresh' at a later point to resolve this.
-	return "", fmt.Errorf("Request has timed out. Please try again later. \nRun terraform refresh to get the latest state of your request")
+	return "", fmt.Errorf("Request has timed out with status %s. \nRun terraform refresh to get the latest state of your request", status)
 }
 
 // read the config file
