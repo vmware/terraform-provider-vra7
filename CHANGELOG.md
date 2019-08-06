@@ -1,4 +1,23 @@
-## 0.2.1 (Unreleased)
+## 0.3.1 (Unreleased)
+## 0.3.0 (August 06, 2019)
+
+FEATURES:
+
+IMPROVEMENTS:
+
+* Updates for terraform 0.12.0. Thanks @skylerto! ([#17](https://github.com/terraform-providers/terraform-provider-vra7/pull/17))
+* Changes to make acceptance tests run with v0.12 changes ([#18](https://github.com/terraform-providers/terraform-provider-vra7/pull/18))
+* Updates to examples to match return types ([#21](https://github.com/terraform-providers/terraform-provider-vra7/pull/21))
+
+BUG FIXES:
+
+* Cleanup README
+* Fix travis tests and changes to pass linting ([#10](https://github.com/terraform-providers/terraform-provider-vra7/pull/10))
+* Formatting example code and removing debugging comment ([#11](https://github.com/terraform-providers/terraform-provider-vra7/pull/11))
+* Update failure was returning wrong status in the console. ([#22](https://github.com/terraform-providers/terraform-provider-vra7/pull/22))
+* The provider should wait for the terminal state or timeout ([#24](https://github.com/terraform-providers/terraform-provider-vra7/pull/24))
+
+
 ## 0.2.0 (May 07, 2019)
 
 FEATURES:
