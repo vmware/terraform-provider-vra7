@@ -1,4 +1,12 @@
 ## 0.4.0 (Unreleased)
+FEATURES:
+
+IMPROVEMENTS:
+
+* Upgrade terraform SDK code to v0.12.6 ([#26](https://github.com/terraform-providers/terraform-provider-vra7/pull/26))
+
+BUG FIXES:
+
 ## 0.3.0 (August 07, 2019)
 
 FEATURES:
