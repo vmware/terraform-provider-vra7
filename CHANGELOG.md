@@ -1,4 +1,4 @@
-## 0.4.0 (Unreleased)
+## 0.4.0 (August 08, 2019)
 FEATURES:
 
 IMPROVEMENTS:
