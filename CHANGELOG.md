@@ -1,4 +1,7 @@
 ## 0.4.1 (Unreleased)
+
+* 0.4.0 missed 0.12 support which this release aims to ship with.
+
 ## 0.4.0 (August 08, 2019)
 FEATURES:
 
