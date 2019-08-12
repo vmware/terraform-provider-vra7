@@ -105,6 +105,15 @@ func resourceVra7Deployment() *schema.Resource {
 				Computed: true,
 				Elem:     schema.TypeString,
 			},
+			"resource_views_data": {
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeMap,
+					Elem: schema.TypeString,
+				},
+				Description: "The response data located along side the resource view API calls",
+				Computed:    true,
+			},
 		},
 	}
 }
@@ -347,27 +356,19 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	resourceDataMap := make(map[string]map[string]interface{})
+	var resourceViewsData []map[string]interface{}
 	for _, resource := range requestResourceView.Content {
-		if resource.ResourceType == sdk.InfrastructureVirtual {
-			resourceData := resource.ResourcesData
-			log.Info("The resource data map of the resource %v is: \n%v", resourceData.Component, resource.ResourcesData)
-			dataVals := make(map[string]interface{})
-			resourceDataMap[resourceData.Component] = dataVals
-			dataVals[sdk.MachineCPU] = resourceData.CPU
-			dataVals[sdk.MachineStorage] = resourceData.Storage
-			dataVals[sdk.IPAddress] = resourceData.IPAddress
-			dataVals[sdk.MachineMemory] = resourceData.Memory
-			dataVals[sdk.MachineName] = resourceData.MachineName
-			dataVals[sdk.MachineGuestOs] = resourceData.MachineGuestOperatingSystem
-			dataVals[sdk.MachineBpName] = resourceData.MachineBlueprintName
-			dataVals[sdk.MachineType] = resourceData.MachineType
-			dataVals[sdk.MachineReservationName] = resourceData.MachineReservationName
-			dataVals[sdk.MachineInterfaceType] = resourceData.MachineInterfaceType
-			dataVals[sdk.MachineID] = resourceData.MachineID
-			dataVals[sdk.MachineGroupName] = resourceData.MachineGroupName
-			dataVals[sdk.MachineDestructionDate] = resourceData.MachineDestructionDate
+		viewData := make(map[string]interface{})
+		for key := range resource.ResourcesData {
+			viewData[key] = utils.FlattenJSON(resource.ResourcesData, key)
 		}
+		resourceViewsData = append(resourceViewsData, utils.Flatten(viewData))
 	}
+	setDataError := d.Set("resource_views_data", resourceViewsData)
+	if setDataError != nil {
+		return fmt.Errorf(setDataError.Error())
+	}
+
 	resourceConfiguration, _ := d.Get("resource_configuration").(map[string]interface{})
 
 	resourceConfiguration, changed := utils.UpdateResourceConfigurationMap(resourceConfiguration, resourceDataMap)
@@ -378,6 +379,7 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf(setError.Error())
 		}
 	}
+
 	return nil
 }
 
