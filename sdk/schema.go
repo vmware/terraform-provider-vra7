@@ -87,7 +87,7 @@ type DeploymentResourceData struct {
 	ChangeLease                 bool        `json:"ChangeLease,omitempty"`
 	ChangeOwner                 bool        `json:"ChangeOwner,omitempty"`
 	CreateSnapshot              bool        `json:"CreateSnapshot,omitempty"`
-	Networks                    []NWDetails `json:"NETWORK_LIST"`
+	Networks                    []NWDetails `json:"NETWORK_LIST,omitempty"`
 }
 
 //Networks Related structs
@@ -97,9 +97,9 @@ type NWDetails struct {
 	NetworkAddressInfo NetworkInfo `json:"data,omitempty"`
 }
 type NetworkInfo struct {
-	IPAddress  string `json:"NETWORK_ADDRESS"`
-	MACAddress string `json:"NETWORK_MAC_ADDRESS"`
-	Name       string `json:"NETWORK_NAME"`
+	IPAddress  string `json:"NETWORK_ADDRESS,omitempty"`
+	MACAddress string `json:"NETWORK_MAC_ADDRESS,omitempty"`
+	Name       string `json:"NETWORK_NAME,omitempty"`
 }
 
 // ResourceActions - Retrieves the resources that were provisioned as a result of a given request.
