@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -366,10 +367,18 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			dataVals[sdk.MachineID] = resourceData.MachineID
 			dataVals[sdk.MachineGroupName] = resourceData.MachineGroupName
 			dataVals[sdk.MachineDestructionDate] = resourceData.MachineDestructionDate
+			// Handle Network Info
+			for idx, netDetails := range resourceData.Networks {
+				log.Info("The Network list value is for idx %i  = %+v", idx, netDetails)
+				networkIndexName := "Network" + strconv.Itoa(idx)
+				dataVals[networkIndexName+".IPAddress"] = netDetails.NetworkAddressInfo.IPAddress
+				dataVals[networkIndexName+".MACAddress"] = netDetails.NetworkAddressInfo.MACAddress
+				dataVals[networkIndexName+".Name"] = netDetails.NetworkAddressInfo.Name
+			}
+
 		}
 	}
 	resourceConfiguration, _ := d.Get("resource_configuration").(map[string]interface{})
-
 	resourceConfiguration, changed := utils.UpdateResourceConfigurationMap(resourceConfiguration, resourceDataMap)
 
 	if changed {
