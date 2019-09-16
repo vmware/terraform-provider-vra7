@@ -43,6 +43,8 @@ const (
 	MachineDestructionDate = "destruction_date"
 	MachineReconfigure     = "reconfigure"
 	MachinePowerOff        = "power_off"
+	Networks               = "NETWORK_LIST"
+	ComponentTypeId        = "componentTypeId"
 
 	InProgress             = "IN_PROGRESS"
 	Successful             = "SUCCESSFUL"
@@ -196,7 +198,6 @@ func (c *APIClient) GetRequestResourceView(catalogRequestID string) (*RequestRes
 	if respErr != nil {
 		return nil, respErr
 	}
-
 	var response RequestResourceView
 	unmarshallErr := utils.UnmarshalJSON(resp.Body, &response)
 	if unmarshallErr != nil {

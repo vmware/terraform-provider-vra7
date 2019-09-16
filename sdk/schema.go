@@ -60,33 +60,46 @@ type DeploymentResource struct {
 
 // DeploymentResourceData - view of the resources/machines in a deployment
 type DeploymentResourceData struct {
-	Memory                      int    `json:"MachineMemory,omitempty"`
-	CPU                         int    `json:"MachineCPU,omitempty"`
-	IPAddress                   string `json:"ip_address,omitempty"`
-	Storage                     int    `json:"MachineStorage,omitempty"`
-	MachineInterfaceType        string `json:"MachineInterfaceType,omitempty"`
-	MachineName                 string `json:"MachineName,omitempty"`
-	MachineGuestOperatingSystem string `json:"MachineGuestOperatingSystem,omitempty"`
-	MachineDestructionDate      string `json:"MachineDestructionDate,omitempty"`
-	MachineGroupName            string `json:"MachineGroupName,omitempty"`
-	MachineBlueprintName        string `json:"MachineBlueprintName,omitempty"`
-	MachineReservationName      string `json:"MachineReservationName,omitempty"`
-	MachineType                 string `json:"MachineType,omitempty"`
-	MachineID                   string `json:"machineId,omitempty"`
-	MachineExpirationDate       string `json:"MachineExpirationDate,omitempty"`
-	Component                   string `json:"Component,omitempty"`
-	Expire                      bool   `json:"Expire,omitempty"`
-	Reconfigure                 bool   `json:"Reconfigure,omitempty"`
-	Reset                       bool   `json:"Reset,omitempty"`
-	Reboot                      bool   `json:"Reboot,omitempty"`
-	PowerOff                    bool   `json:"PowerOff,omitempty"`
-	Destroy                     bool   `json:"Destroy,omitempty"`
-	Shutdown                    bool   `json:"Shutdown,omitempty"`
-	Suspend                     bool   `json:"Suspend,omitempty"`
-	Reprovision                 bool   `json:"Reprovision,omitempty"`
-	ChangeLease                 bool   `json:"ChangeLease,omitempty"`
-	ChangeOwner                 bool   `json:"ChangeOwner,omitempty"`
-	CreateSnapshot              bool   `json:"CreateSnapshot,omitempty"`
+	Memory                      int         `json:"MachineMemory,omitempty"`
+	CPU                         int         `json:"MachineCPU,omitempty"`
+	IPAddress                   string      `json:"ip_address,omitempty"`
+	Storage                     int         `json:"MachineStorage,omitempty"`
+	MachineInterfaceType        string      `json:"MachineInterfaceType,omitempty"`
+	MachineName                 string      `json:"MachineName,omitempty"`
+	MachineGuestOperatingSystem string      `json:"MachineGuestOperatingSystem,omitempty"`
+	MachineDestructionDate      string      `json:"MachineDestructionDate,omitempty"`
+	MachineGroupName            string      `json:"MachineGroupName,omitempty"`
+	MachineBlueprintName        string      `json:"MachineBlueprintName,omitempty"`
+	MachineReservationName      string      `json:"MachineReservationName,omitempty"`
+	MachineType                 string      `json:"MachineType,omitempty"`
+	MachineID                   string      `json:"machineId,omitempty"`
+	MachineExpirationDate       string      `json:"MachineExpirationDate,omitempty"`
+	Component                   string      `json:"Component,omitempty"`
+	Expire                      bool        `json:"Expire,omitempty"`
+	Reconfigure                 bool        `json:"Reconfigure,omitempty"`
+	Reset                       bool        `json:"Reset,omitempty"`
+	Reboot                      bool        `json:"Reboot,omitempty"`
+	PowerOff                    bool        `json:"PowerOff,omitempty"`
+	Destroy                     bool        `json:"Destroy,omitempty"`
+	Shutdown                    bool        `json:"Shutdown,omitempty"`
+	Suspend                     bool        `json:"Suspend,omitempty"`
+	Reprovision                 bool        `json:"Reprovision,omitempty"`
+	ChangeLease                 bool        `json:"ChangeLease,omitempty"`
+	ChangeOwner                 bool        `json:"ChangeOwner,omitempty"`
+	CreateSnapshot              bool        `json:"CreateSnapshot,omitempty"`
+	Networks                    []NWDetails `json:"NETWORK_LIST,omitempty"`
+}
+
+//Networks Related structs
+//
+type NWDetails struct {
+	ComponentTypeId    string      `json:"componentTypeId,omitempty"`
+	NetworkAddressInfo NetworkInfo `json:"data,omitempty"`
+}
+type NetworkInfo struct {
+	IPAddress  string `json:"NETWORK_ADDRESS,omitempty"`
+	MACAddress string `json:"NETWORK_MAC_ADDRESS,omitempty"`
+	Name       string `json:"NETWORK_NAME,omitempty"`
 }
 
 // ResourceActions - Retrieves the resources that were provisioned as a result of a given request.

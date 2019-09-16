@@ -13,3 +13,4 @@ require (
 	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c // indirect
 	gopkg.in/jarcoal/httpmock.v1 v1.0.0-20170412085702-cf52904a3cf0
 )
+
