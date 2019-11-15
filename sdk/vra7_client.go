@@ -6,15 +6,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/hashicorp/terraform/helper/logging"
 )
 
 // NewClient creates a new APIClient object
 func NewClient(user, password, tenant, baseURL string, insecure bool) APIClient {
 
-	transport := http.DefaultTransport.(*http.Transport)
-	transport.TLSClientConfig = &tls.Config{
+	t := http.DefaultTransport.(*http.Transport)
+	t.TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: insecure,
 	}
+	transport := logging.NewTransport("VRA7", t)
 	httpClient := &http.Client{
 		// Timeout:   clientTimeout,
 		Transport: transport,
