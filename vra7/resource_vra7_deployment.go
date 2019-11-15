@@ -29,17 +29,19 @@ var (
 
 // ProviderSchema represents the information provided in the tf file
 type ProviderSchema struct {
-	CatalogItemName         string
-	CatalogItemID           string
-	Description             string
-	Reasons                 string
-	BusinessGroupID         string
-	BusinessGroupName       string
-	WaitTimeout             int
-	RequestStatus           string
-	FailedMessage           string
-	DeploymentConfiguration map[string]interface{}
-	ResourceConfiguration   map[string]interface{}
+	CatalogItemName             string
+	CatalogItemID               string
+	Description                 string
+	Reasons                     string
+	BusinessGroupID             string
+	BusinessGroupName           string
+	WaitTimeout                 int
+	RequestStatus               string
+	FailedMessage               string
+	DeploymentConfiguration     map[string]interface{}
+	DeploymentConfigurationList map[string]interface{}
+	DeploymentConfigurationBool map[string]interface{}
+	ResourceConfiguration       map[string]interface{}
 }
 
 func resourceVra7Deployment() *schema.Resource {
@@ -98,13 +100,25 @@ func resourceVra7Deployment() *schema.Resource {
 			"deployment_configuration": {
 				Type:     schema.TypeMap,
 				Optional: true,
-				Elem:     schema.TypeString,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"deployment_configuration_list": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"deployment_configuration_bool": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeBool},
 			},
 			"resource_configuration": {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Computed: true,
-				Elem:     schema.TypeString,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -143,8 +157,14 @@ func resourceVra7DeploymentCreate(d *schema.ResourceData, meta interface{}) erro
 	requestTemplate.Description = p.Description
 	requestTemplate.Reasons = p.Reasons
 
-	for field1 := range p.DeploymentConfiguration {
-		requestTemplate.Data[field1] = p.DeploymentConfiguration[field1]
+	for field1, v1 := range p.DeploymentConfiguration {
+		requestTemplate.Data[field1] = v1
+	}
+	for field1, v1 := range p.DeploymentConfigurationList {
+		requestTemplate.Data[field1] = strings.Split(v1.(string), ",")
+	}
+	for field1, v1 := range p.DeploymentConfigurationBool {
+		requestTemplate.Data[field1] = v1.(bool)
 	}
 
 	// Get all component names in the blueprint corresponding to the catalog item.
@@ -548,10 +568,16 @@ func (p *ProviderSchema) checkConfigValuesValidity(d *schema.ResourceData) (*sdk
 	}
 	log.Info("The request template data corresponding to the catalog item %v is: \n %v\n", p.CatalogItemID, requestTemplate.Data)
 
-	for field1 := range p.DeploymentConfiguration {
-		requestTemplate.Data[field1] = p.DeploymentConfiguration[field1]
-
+	for field1, v1 := range p.DeploymentConfiguration {
+		requestTemplate.Data[field1] = v1
 	}
+	for field1, v1 := range p.DeploymentConfigurationList {
+		requestTemplate.Data[field1] = strings.Split(v1.(string), ",")
+	}
+	for field1, v1 := range p.DeploymentConfigurationBool {
+		requestTemplate.Data[field1] = v1.(bool)
+	}
+
 	// get the business group id from name
 	var businessGroupIDFromName string
 	if len(p.BusinessGroupName) > 0 {
@@ -610,16 +636,18 @@ func readProviderConfiguration(d *schema.ResourceData) *ProviderSchema {
 
 	log.Info("Reading the provider configuration data.....")
 	providerSchema := ProviderSchema{
-		CatalogItemName:         strings.TrimSpace(d.Get("catalog_item_name").(string)),
-		CatalogItemID:           strings.TrimSpace(d.Get("catalog_item_id").(string)),
-		Description:             strings.TrimSpace(d.Get("description").(string)),
-		Reasons:                 strings.TrimSpace(d.Get("reasons").(string)),
-		BusinessGroupName:       strings.TrimSpace(d.Get("businessgroup_name").(string)),
-		BusinessGroupID:         strings.TrimSpace(d.Get("businessgroup_id").(string)),
-		WaitTimeout:             d.Get("wait_timeout").(int) * 60,
-		FailedMessage:           strings.TrimSpace(d.Get("failed_message").(string)),
-		ResourceConfiguration:   d.Get("resource_configuration").(map[string]interface{}),
-		DeploymentConfiguration: d.Get("deployment_configuration").(map[string]interface{}),
+		CatalogItemName:             strings.TrimSpace(d.Get("catalog_item_name").(string)),
+		CatalogItemID:               strings.TrimSpace(d.Get("catalog_item_id").(string)),
+		Description:                 strings.TrimSpace(d.Get("description").(string)),
+		Reasons:                     strings.TrimSpace(d.Get("reasons").(string)),
+		BusinessGroupName:           strings.TrimSpace(d.Get("businessgroup_name").(string)),
+		BusinessGroupID:             strings.TrimSpace(d.Get("businessgroup_id").(string)),
+		WaitTimeout:                 d.Get("wait_timeout").(int) * 60,
+		FailedMessage:               strings.TrimSpace(d.Get("failed_message").(string)),
+		ResourceConfiguration:       d.Get("resource_configuration").(map[string]interface{}),
+		DeploymentConfiguration:     d.Get("deployment_configuration").(map[string]interface{}),
+		DeploymentConfigurationList: d.Get("deployment_configuration_list").(map[string]interface{}),
+		DeploymentConfigurationBool: d.Get("deployment_configuration_bool").(map[string]interface{}),
 	}
 
 	log.Info("The values provided in the TF config file is: \n %v ", providerSchema)
