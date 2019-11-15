@@ -49,6 +49,8 @@ The following arguments are supported:
 * `description` - (Optional) Description of the deployment
 * `reasons` - (Optional) Reasons for requesting the deployment
 * `deployment_configuration` - (Optional) The configuration of the deployment from the catalog item
+* `deployment_configuration_list` - (Optional) The configuration of the deployment from the catalog item. The input values are comma separated values and will be passed as a list on the VRA api.
+* `deployment_configuration_bool` - (Optional) The configuration of the deployment from the catalog item. The values should be booleans.
 * `resource_configuration` - (Optional) The configuration of the individual components from the catalog item
 
 ## Nested Blocks
@@ -57,6 +59,27 @@ The following arguments are supported:
 
 This block contains the deployment level properties including the custom properties. These are not a fixed set of properties but referred from the blueprint. There are generic properties like _leaseDays, _number_of_instances, etc but they are optional and from the example of the BasicSingleMachine blueprint, their is one custom property, called deployment_property which is required at request time.
 All the properties that are required during request, must be specified in the config file.
+
+Variants exist: `deployment_configuration_list` and `deployment_configuration_bool`.
+
+```
+resource "vra7_deployment" "frontends" {
+    catalog_item_name = "Create a Security Group"
+    reasons = "Create frontends security groups"
+    description = "Frontends 4"
+    deployment_configuration_bool = {
+        "commonName" = "dmz"
+    }
+    deployment_configuration_bool = {
+        "isManaged" = true
+        "isUniversal" = false
+    }
+    deployment_configuration_list = {
+        "securityGroupIn" = "front1,front2"
+    }
+}
+
+```
 
 ### resource_configuration ###
 
