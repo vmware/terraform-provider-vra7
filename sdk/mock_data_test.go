@@ -1,7 +1,7 @@
 package sdk
 
 var (
-	requestTemplateResponse = `{  
+	requestTemplateResponse = `{
 		"type":"com.vmware.vcac.catalog.domain.request.CatalogItemProvisioningRequest",
 		"catalogItemId":"feaedf73-560c-4612-a573-41667e017691",
 		"requestedFor":"fritz@coke.sqa-horizon.local",
@@ -1082,7 +1082,7 @@ var (
 		}
 	 }`
 
-	resourceActionsResponse = `{  
+	resourcesResponse = `{  
 		"links":[  
 	 
 		],

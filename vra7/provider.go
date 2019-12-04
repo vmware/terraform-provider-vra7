@@ -17,6 +17,9 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"vra7_deployment": resourceVra7Deployment(),
 		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"vra7_deployment": dataSourceVra7Deployment(),
+		},
 	}
 }
 

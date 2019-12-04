@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUnmarshalJsonStringIfNecessaryFunction(t *testing.T) {
@@ -13,15 +14,15 @@ func TestUnmarshalJsonStringIfNecessaryFunction(t *testing.T) {
 		"key1": "string",
 		"key2": 1,
 	}}
-	computedValue1 := UnmarshalJsonStringIfNecessary(fieldName, notStringValue)
+	computedValue1 := UnmarshalJSONStringIfNecessary(fieldName, notStringValue)
 	assertLocal.Equal(notStringValue, computedValue1)
 
-	var notJsonStringValue = "some custom value"
-	computedValue2 := UnmarshalJsonStringIfNecessary(fieldName, notJsonStringValue)
-	assertLocal.Equal(notJsonStringValue, computedValue2)
+	var notJSONStringValue = "some custom value"
+	computedValue2 := UnmarshalJSONStringIfNecessary(fieldName, notJSONStringValue)
+	assertLocal.Equal(notJSONStringValue, computedValue2)
 
-	var jsonStringValue = "[\"bg1\", \"bg2\"]"
-	var expectedJsonValue = []interface{}{"bg1", "bg2"}
-	computedValue3 := UnmarshalJsonStringIfNecessary(fieldName, jsonStringValue)
-	assertLocal.Equal(expectedJsonValue, computedValue3)
+	var jSONStringValue = "[\"bg1\", \"bg2\"]"
+	var expectedJSONValue = []interface{}{"bg1", "bg2"}
+	computedValue3 := UnmarshalJSONStringIfNecessary(fieldName, jSONStringValue)
+	assertLocal.Equal(expectedJSONValue, computedValue3)
 }

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/terraform-providers/terraform-provider-vra7/utils"
 )
 
@@ -20,31 +21,13 @@ const (
 	ConsumerResources           = Consumer + "/resources"
 	EntitledCatalogItems        = Consumer + "/entitledCatalogItems"
 	EntitledCatalogItemViewsAPI = Consumer + "/entitledCatalogItemViews"
-	GetResourceAPI              = ConsumerRequests + "/" + "%s" + "/resources"
-	PostActionTemplateAPI       = ConsumerResources + "/" + "%s" + "/actions/" + "%s" + "/requests"
+	GetResourceAPI              = Consumer + "/resources/%s"
+	GetRequestResourcesAPI      = ConsumerRequests + "/" + "%s" + "/resources"
+	ResourceActions             = ConsumerResources + "/" + "%s" + "/actions"
+	PostActionTemplateAPI       = ResourceActions + "/" + "%s" + "/requests"
 	GetActionTemplateAPI        = PostActionTemplateAPI + "/template"
 	GetRequestResourceViewAPI   = ConsumerRequests + "/" + "%s" + "/resourceViews"
 	RequestTemplateAPI          = EntitledCatalogItems + "/" + "%s" + "/requests/template"
-
-	// read resource machine constants
-
-	MachineCPU             = "cpu"
-	MachineStorage         = "storage"
-	MachineMemory          = "memory"
-	IPAddress              = "ip_address"
-	MachineName            = "name"
-	MachineGuestOs         = "guest_operating_system"
-	MachineBpName          = "blueprint_name"
-	MachineType            = "type"
-	MachineReservationName = "reservation_name"
-	MachineInterfaceType   = "interface_type"
-	MachineID              = "id"
-	MachineGroupName       = "group_name"
-	MachineDestructionDate = "destruction_date"
-	MachineReconfigure     = "reconfigure"
-	MachinePowerOff        = "power_off"
-	Networks               = "NETWORK_LIST"
-	ComponentTypeId        = "componentTypeId"
 
 	InProgress             = "IN_PROGRESS"
 	Successful             = "SUCCESSFUL"
@@ -55,6 +38,8 @@ const (
 	Component              = "Component"
 	Reconfigure            = "Reconfigure"
 	Destroy                = "Destroy"
+	ScaleOut               = "Scale Out"
+	ScaleIn                = "Scale In"
 	DeploymentDestroy      = "Deployment Destroy"
 )
 
@@ -168,7 +153,6 @@ func (c *APIClient) GetBusinessGroupID(businessGroupName string, tenant string) 
 			return businessGroup.ID, nil
 		}
 	}
-	log.Errorf("No business group found with name: %s ", businessGroupName)
 	return "", fmt.Errorf("No business group found with name: %s ", businessGroupName)
 }
 
@@ -228,9 +212,9 @@ func (c *APIClient) RequestCatalogItem(requestTemplate *CatalogItemRequestTempla
 	return &response, nil
 }
 
-// GetResourceActions get the resource actions allowed for a resource
-func (c *APIClient) GetResourceActions(catalogItemRequestID string) (*ResourceActions, error) {
-	path := fmt.Sprintf(GetResourceAPI, catalogItemRequestID)
+// GetRequestResources get the resource actions allowed for a resource
+func (c *APIClient) GetRequestResources(catalogItemRequestID string) (*Resources, error) {
+	path := fmt.Sprintf(GetRequestResourcesAPI, catalogItemRequestID)
 
 	url := c.BuildEncodedURL(path, nil)
 	resp, respErr := c.Get(url, nil)
@@ -238,12 +222,54 @@ func (c *APIClient) GetResourceActions(catalogItemRequestID string) (*ResourceAc
 		return nil, respErr
 	}
 
-	var resourceActions ResourceActions
-	unmarshallErr := utils.UnmarshalJSON(resp.Body, &resourceActions)
+	var requestResources Resources
+	unmarshallErr := utils.UnmarshalJSON(resp.Body, &requestResources)
 	if unmarshallErr != nil {
 		return nil, unmarshallErr
 	}
-	return &resourceActions, nil
+	return &requestResources, nil
+}
+
+// GetResource get the resource actions allowed for a resource
+func (c *APIClient) GetResource(resourceID string) (*ResourceContent, error) {
+	path := fmt.Sprintf(GetResourceAPI, resourceID)
+
+	url := c.BuildEncodedURL(path, nil)
+	resp, respErr := c.Get(url, nil)
+	if respErr != nil {
+		return nil, respErr
+	}
+
+	var resource ResourceContent
+	unmarshallErr := utils.UnmarshalJSON(resp.Body, &resource)
+	if unmarshallErr != nil {
+		return nil, unmarshallErr
+	}
+	return &resource, nil
+}
+
+// GetResourceActions get the resource actions allowed for a resource
+func (c *APIClient) GetResourceActions(resourceID string) ([]Operation, error) {
+	path := fmt.Sprintf(ResourceActions, resourceID)
+
+	url := c.BuildEncodedURL(path, nil)
+	resp, respErr := c.Get(url, nil)
+	if respErr != nil {
+		return nil, respErr
+	}
+
+	var reqResponse RequestResponse
+	unmarshallErr := utils.UnmarshalJSON(resp.Body, &reqResponse)
+	if unmarshallErr != nil {
+		return nil, unmarshallErr
+	}
+	var resourceActions []Operation
+	for _, item := range reqResponse.Content {
+		action := &Operation{}
+		mapstructure.Decode(item, &action)
+		resourceActions = append(resourceActions, *action)
+	}
+	return resourceActions, nil
 }
 
 // GetResourceActionTemplate get the action template corresponding to the action id
