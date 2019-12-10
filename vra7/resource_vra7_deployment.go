@@ -531,11 +531,11 @@ func (p *ProviderSchema) checkConfigValuesValidity(d *schema.ResourceData) (*sdk
 		log.Error(CatalogItemIDNameNotMatchingErr, p.CatalogItemName, p.CatalogItemID)
 		return nil, fmt.Errorf(CatalogItemIDNameNotMatchingErr, p.CatalogItemName, p.CatalogItemID)
 	} else if len(p.CatalogItemID) > 0 { // else if both are provided and matches or just id is provided, use id
-		d.Set("catalog_item_id", p.CatalogItemID) //nolint
+		d.Set("catalog_item_id", p.CatalogItemID)         //nolint
 		d.Set("catalog_item_name", catalogItemNameFromID) //nolint
 	} else if len(p.CatalogItemName) > 0 { // else if name is provided, use the id fetched from the name
 		d.Set("catalog_item_id", catalogItemIDFromName) //nolint
-		d.Set("catalog_item_name", p.CatalogItemName) //nolint
+		d.Set("catalog_item_name", p.CatalogItemName)   //nolint
 	}
 
 	// update the catalogItemID var with the updated id
