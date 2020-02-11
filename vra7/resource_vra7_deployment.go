@@ -194,11 +194,11 @@ func resourceVra7DeploymentCreate(d *schema.ResourceData, meta interface{}) erro
 		log.Errorf("Resource Machine Request Failed: %v", err)
 		return fmt.Errorf("Resource Machine Request Failed: %v", err)
 	}
-	d.SetId(catalogRequest.ID)
 	_, err = waitForRequestCompletion(d, meta, catalogRequest.ID)
 	if err != nil {
 		return err
 	}
+	d.SetId(catalogRequest.ID)
 	return resourceVra7DeploymentRead(d, meta)
 }
 

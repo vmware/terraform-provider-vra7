@@ -14,3 +14,4 @@ require (
 	gopkg.in/jarcoal/httpmock.v1 v1.0.0-20170412085702-cf52904a3cf0
 )
 
+go 1.13
