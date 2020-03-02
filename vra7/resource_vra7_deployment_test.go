@@ -117,6 +117,8 @@ func TestAccVra7DeploymentCreate_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"vra7_deployment.my_vra7_deployment", "deployment_configuration.deployment_property", "custom deployment property"),
 					resource.TestCheckResourceAttr(
+						"vra7_deployment.my_vra7_deployment", "deployment_configuration.businessGroups", "[\"bg1\"]"),
+					resource.TestCheckResourceAttr(
 						"vra7_deployment.my_vra7_deployment", "resource_configuration.%", "3"),
 					resource.TestCheckResourceAttr(
 						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.cpu", "1"),
@@ -153,6 +155,8 @@ func TestAccVra7DeploymentUpdate_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"vra7_deployment.my_vra7_deployment", "deployment_configuration.deployment_property", "custom deployment property"),
 					resource.TestCheckResourceAttr(
+						"vra7_deployment.my_vra7_deployment", "deployment_configuration.businessGroups", "[\"bg1\"]"),
+					resource.TestCheckResourceAttr(
 						"vra7_deployment.my_vra7_deployment", "resource_configuration.%", "3"),
 					resource.TestCheckResourceAttr(
 						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.cpu", "1"),
@@ -178,6 +182,8 @@ func TestAccVra7DeploymentUpdate_basic(t *testing.T) {
 						"vra7_deployment.my_vra7_deployment", "deployment_configuration._leaseDays", "15"),
 					resource.TestCheckResourceAttr(
 						"vra7_deployment.my_vra7_deployment", "deployment_configuration.deployment_property", "updated custom deployment property"),
+					resource.TestCheckResourceAttr(
+						"vra7_deployment.my_vra7_deployment", "deployment_configuration.businessGroups", "[\"bg1\"]"),
 					resource.TestCheckResourceAttr(
 						"vra7_deployment.my_vra7_deployment", "resource_configuration.%", "3"),
 					resource.TestCheckResourceAttr(
@@ -232,6 +238,9 @@ reasons = "Testing the vRA 7 Terraform plugin"
 deployment_configuration = {
 	_leaseDays = "15"
 	deployment_property = "updated custom deployment property"
+	businessGroups = << EOF
+	["bg1"]
+	EOF
 }
 resource_configuration = {
 	"vSphereVM1.cpu" = 1
@@ -254,6 +263,9 @@ reasons = "Testing the vRA 7 Terraform plugin"
 deployment_configuration = {
 	_leaseDays = "15"
 	deployment_property = "custom deployment property"
+	businessGroups = << EOF
+	["bg1"]
+	EOF
 }
 resource_configuration = {
 	"vSphereVM1.cpu" = 1

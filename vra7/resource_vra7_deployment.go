@@ -143,9 +143,7 @@ func resourceVra7DeploymentCreate(d *schema.ResourceData, meta interface{}) erro
 	requestTemplate.Description = p.Description
 	requestTemplate.Reasons = p.Reasons
 
-	for field1 := range p.DeploymentConfiguration {
-		requestTemplate.Data[field1] = p.DeploymentConfiguration[field1]
-	}
+	updateRequestTemplateFromDeploymentConfiguration(p.DeploymentConfiguration, requestTemplate)
 
 	// Get all component names in the blueprint corresponding to the catalog item.
 	var componentNameList []string
@@ -548,10 +546,8 @@ func (p *ProviderSchema) checkConfigValuesValidity(d *schema.ResourceData) (*sdk
 	}
 	log.Info("The request template data corresponding to the catalog item %v is: \n %v\n", p.CatalogItemID, requestTemplate.Data)
 
-	for field1 := range p.DeploymentConfiguration {
-		requestTemplate.Data[field1] = p.DeploymentConfiguration[field1]
+	updateRequestTemplateFromDeploymentConfiguration(p.DeploymentConfiguration, requestTemplate)
 
-	}
 	// get the business group id from name
 	var businessGroupIDFromName string
 	if len(p.BusinessGroupName) > 0 {
@@ -573,6 +569,14 @@ func (p *ProviderSchema) checkConfigValuesValidity(d *schema.ResourceData) (*sdk
 		requestTemplate.BusinessGroupID = businessGroupIDFromName
 	}
 	return requestTemplate, nil
+}
+
+func updateRequestTemplateFromDeploymentConfiguration(deploymentConfiguration map[string]interface{}, requestTemplate *sdk.CatalogItemRequestTemplate) {
+	for field := range deploymentConfiguration {
+		value := deploymentConfiguration[field]
+
+		requestTemplate.Data[field] = utils.UnmarshalJsonStringIfNecessary(field, value)
+	}
 }
 
 // check the request status on apply and update
