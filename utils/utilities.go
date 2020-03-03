@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/op/go-logging"
 	"reflect"
 	"strconv"
 	"strings"
@@ -13,6 +14,10 @@ const (
 	// utility constants
 
 	LoggerID = "terraform-provider-vra7"
+)
+
+var (
+	log = logging.MustGetLogger(LoggerID)
 )
 
 // UnmarshalJSON  decodes json
@@ -51,6 +56,26 @@ func ConvertInterfaceToString(interfaceData interface{}) string {
 		stringData = strconv.FormatBool(interfaceData.(bool))
 	}
 	return stringData
+}
+
+// Parse value and if it's JSON string, unmarshal it
+func UnmarshalJsonStringIfNecessary(field string, value interface{}) interface{} {
+	// Cast value to string. Provider schema requires DeploymentConfiguration to be map[string]string
+	stringValue, ok := value.(string)
+
+	if !ok {
+		log.Warning("Value of field=%v is not a string. Actual value %+v", field, value)
+		return value
+	}
+
+	var jsonValue interface{}
+	err := UnmarshalJSON([]byte(stringValue), &jsonValue)
+	if err != nil {
+		log.Debug("Value of field=%v is not a valid JSON string. Actual value %+v", field, value)
+		return value
+	}
+
+	return jsonValue
 }
 
 // UpdateResourceConfigurationMap updates the resource configuration with

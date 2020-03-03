@@ -126,6 +126,43 @@ resource "vra7_deployment" "example_machine2" {
 
 Save this configuration in `main.tf` in a path where the binary is placed.
 
+### Nested structures
+
+At the moment Terraform SDK does not support nested dynamic types, which are used by vRA API.
+Issue tracking development of this feature is on GitHub (Support the pseudo dynamic type)[https://github.com/hashicorp/terraform-plugin-sdk/issues/248].
+
+In vRA Terraform Resource you can do it by passing JSON string, but only inside `deployment_configuration` for time being. You can use `jsonencode` Terraform function or multiline strings.
+It's based on workaround used by other providers such as AWS and (IAM Policy resource)[https://www.terraform.io/docs/providers/aws/r/iam_policy.html#example-usage].
+
+**Example 1:**
+```hcl
+resource "vra7_deployment" "example_machine1" {
+  catalog_item_name = "vNet"
+
+     deployment_configuration = {
+        "networkName" = "test VNET"
+        "businessGroups" = jsonencode("[\"bgTest1\", \"bgTest2\"]")
+     }
+}
+```
+
+**Example 2:**
+```hcl
+resource "vra7_deployment" "example_machine1" {
+  catalog_item_name = "vNet"
+
+     deployment_configuration = {
+        "networkName" = "test VNET"
+        "businessGroups" = <<EOF
+        [
+          "bgTest1",
+          "bgTest2"
+        ]
+        EOF
+     }
+}
+```
+
 ## Execution
 These are the Terraform commands that can be used for the vRA plugin:
 * `terraform init` - The init command is used to initialize a working directory containing Terraform configuration files.
