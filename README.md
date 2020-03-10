@@ -126,6 +126,13 @@ resource "vra7_deployment" "example_machine2" {
 
 Save this configuration in `main.tf` in a path where the binary is placed.
 
+### Deployment Destroy
+In case you are encountering the following error in vRA7:
+```
+Insufficient entitlement to destroy VM
+```
+Please set `deployment_destroy = true` which will cause the provider to destroy the deployment resource instead.
+
 ### Nested structures
 
 At the moment Terraform SDK does not support nested dynamic types, which are used by vRA API.

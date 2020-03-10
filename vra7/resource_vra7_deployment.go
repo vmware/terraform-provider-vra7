@@ -40,6 +40,7 @@ type ProviderSchema struct {
 	FailedMessage           string
 	DeploymentConfiguration map[string]interface{}
 	ResourceConfiguration   map[string]interface{}
+	DeploymentDestroy       bool
 }
 
 func resourceVra7Deployment() *schema.Resource {
@@ -105,6 +106,10 @@ func resourceVra7Deployment() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				Elem:     schema.TypeString,
+			},
+			"deployment_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 		},
 	}
@@ -392,6 +397,8 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 //Terraform call - terraform destroy
 func resourceVra7DeploymentDelete(d *schema.ResourceData, meta interface{}) error {
 	vraClient = meta.(*sdk.APIClient)
+	// Get client handle
+	p := readProviderConfiguration(d)
 	//Get requester machine ID from schema.dataresource
 	catalogItemRequestID := d.Id()
 	// Throw an error if request ID has no value or empty value
@@ -421,7 +428,7 @@ func resourceVra7DeploymentDelete(d *schema.ResourceData, meta interface{}) erro
 			var destroyEnabled bool
 			var destroyActionID string
 			for _, op := range resources.Operations {
-				if op.Name == sdk.Destroy {
+				if (p.DeploymentDestroy && op.Name == sdk.DeploymentDestroy) || (!p.DeploymentDestroy && op.Name == sdk.Destroy) {
 					destroyEnabled = true
 					destroyActionID = op.OperationID
 					break
@@ -624,6 +631,7 @@ func readProviderConfiguration(d *schema.ResourceData) *ProviderSchema {
 		FailedMessage:           strings.TrimSpace(d.Get("failed_message").(string)),
 		ResourceConfiguration:   d.Get("resource_configuration").(map[string]interface{}),
 		DeploymentConfiguration: d.Get("deployment_configuration").(map[string]interface{}),
+		DeploymentDestroy:       d.Get("deployment_destroy").(bool),
 	}
 
 	log.Info("The values provided in the TF config file is: \n %v ", providerSchema)
