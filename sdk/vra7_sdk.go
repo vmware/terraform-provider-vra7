@@ -55,6 +55,7 @@ const (
 	Component              = "Component"
 	Reconfigure            = "Reconfigure"
 	Destroy                = "Destroy"
+	DeploymentDestroy      = "Deployment Destroy"
 )
 
 // GetCatalogItemRequestTemplate - Call to retrieve a request template for a catalog item.
