@@ -4,6 +4,30 @@ import (
 	"time"
 )
 
+// ResourceConfigurationStruct - structure representing the resource_configuration
+type ResourceConfigurationStruct struct {
+	ComponentName    string                 `json:"component_name,omitempty"`
+	Cluster          int                    `json:"cluster,omitempty"`
+	Description      string                 `json:"description,omitempty"`
+	Name             string                 `json:"name,omitempty"`
+	ResourceID       string                 `json:"resource_id,omitempty"`
+	Status           string                 `json:"status,omitempty"`
+	RequestID        string                 `json:"request_id,omitempty"`
+	RequestState     string                 `json:"request_state,omitempty"`
+	ResourceType     string                 `json:"resource_type,omitempty"`
+	Configuration    map[string]interface{} `json:"configuration,omitempty"`
+	DateCreated      string                 `json:"last_created,omitempty"`
+	LastUpdated      string                 `json:"last_updated,omitempty"`
+	ParentResourceID string                 `json:"parent_resource_id,omitempty"`
+	IPAddress        string                 `json:"ip_address,omitempty"`
+}
+
+// RequestResponse is the response structure of any request
+type RequestResponse struct {
+	Content []interface{} `json:"content,omitempty"`
+	Links   []interface{} `json:"links,omitempty"`
+}
+
 // ResourceActionTemplate - is used to store information
 // related to resource action template information.
 type ResourceActionTemplate struct {
@@ -38,79 +62,19 @@ type BusinessGroup struct {
 
 // RequestResourceView - resource view of a provisioned request
 type RequestResourceView struct {
-	Content []DeploymentResource `json:"content,omitempty"`
-	Links   []interface{}        `json:"links,omitempty"`
+	Content []interface{} `json:"content,omitempty"`
+	Links   []interface{} `json:"links,omitempty"`
 }
 
-// DeploymentResource - deployment level view of the provisionined request
-type DeploymentResource struct {
-	RequestState    string                 `json:"requestState,omitempty"`
-	Description     string                 `json:"description,omitempty"`
-	LastUpdated     string                 `json:"lastUpdated,omitempty"`
-	TenantID        string                 `json:"tenantId,omitempty"`
-	Name            string                 `json:"name,omitempty"`
-	BusinessGroupID string                 `json:"businessGroupId,omitempty"`
-	DateCreated     string                 `json:"dateCreated,omitempty"`
-	Status          string                 `json:"status,omitempty"`
-	RequestID       string                 `json:"requestId,omitempty"`
-	ResourceID      string                 `json:"resourceId,omitempty"`
-	ResourceType    string                 `json:"resourceType,omitempty"`
-	ResourcesData   DeploymentResourceData `json:"data,omitempty"`
-}
-
-// DeploymentResourceData - view of the resources/machines in a deployment
-type DeploymentResourceData struct {
-	Memory                      int         `json:"MachineMemory,omitempty"`
-	CPU                         int         `json:"MachineCPU,omitempty"`
-	IPAddress                   string      `json:"ip_address,omitempty"`
-	Storage                     int         `json:"MachineStorage,omitempty"`
-	MachineInterfaceType        string      `json:"MachineInterfaceType,omitempty"`
-	MachineName                 string      `json:"MachineName,omitempty"`
-	MachineGuestOperatingSystem string      `json:"MachineGuestOperatingSystem,omitempty"`
-	MachineDestructionDate      string      `json:"MachineDestructionDate,omitempty"`
-	MachineGroupName            string      `json:"MachineGroupName,omitempty"`
-	MachineBlueprintName        string      `json:"MachineBlueprintName,omitempty"`
-	MachineReservationName      string      `json:"MachineReservationName,omitempty"`
-	MachineType                 string      `json:"MachineType,omitempty"`
-	MachineID                   string      `json:"machineId,omitempty"`
-	MachineExpirationDate       string      `json:"MachineExpirationDate,omitempty"`
-	Component                   string      `json:"Component,omitempty"`
-	Expire                      bool        `json:"Expire,omitempty"`
-	Reconfigure                 bool        `json:"Reconfigure,omitempty"`
-	Reset                       bool        `json:"Reset,omitempty"`
-	Reboot                      bool        `json:"Reboot,omitempty"`
-	PowerOff                    bool        `json:"PowerOff,omitempty"`
-	Destroy                     bool        `json:"Destroy,omitempty"`
-	Shutdown                    bool        `json:"Shutdown,omitempty"`
-	Suspend                     bool        `json:"Suspend,omitempty"`
-	Reprovision                 bool        `json:"Reprovision,omitempty"`
-	ChangeLease                 bool        `json:"ChangeLease,omitempty"`
-	ChangeOwner                 bool        `json:"ChangeOwner,omitempty"`
-	CreateSnapshot              bool        `json:"CreateSnapshot,omitempty"`
-	Networks                    []NWDetails `json:"NETWORK_LIST,omitempty"`
-}
-
-//Networks Related structs
-//
-type NWDetails struct {
-	ComponentTypeId    string      `json:"componentTypeId,omitempty"`
-	NetworkAddressInfo NetworkInfo `json:"data,omitempty"`
-}
-type NetworkInfo struct {
-	IPAddress  string `json:"NETWORK_ADDRESS,omitempty"`
-	MACAddress string `json:"NETWORK_MAC_ADDRESS,omitempty"`
-	Name       string `json:"NETWORK_NAME,omitempty"`
-}
-
-// ResourceActions - Retrieves the resources that were provisioned as a result of a given request.
+// Resources - Retrieves the resources that were provisioned as a result of a given request.
 // Also returns the actions allowed on the resources and their templates
-type ResourceActions struct {
-	Links   []interface{}           `json:"links,omitempty"`
-	Content []ResourceActionContent `json:"content,omitempty"`
+type Resources struct {
+	Links   []interface{}     `json:"links,omitempty"`
+	Content []ResourceContent `json:"content,omitempty"`
 }
 
-// ResourceActionContent - Detailed view of the resource provisioned and the operation allowed
-type ResourceActionContent struct {
+// ResourceContent - Detailed view of the resource provisioned and the operation allowed
+type ResourceContent struct {
 	ID              string          `json:"id,omitempty"`
 	Name            string          `json:"name,omitempty"`
 	ResourceTypeRef ResourceTypeRef `json:"resourceTypeRef,omitempty"`
@@ -130,7 +94,7 @@ type ResourceTypeRef struct {
 // Operation - detailed view of an operation allowed on a resource
 type Operation struct {
 	Name        string `json:"name,omitempty"`
-	OperationID string `json:"id,omitempty"`
+	ID          string `json:"id,omitempty"`
 	Description string `json:"description,omitempty"`
 	Type        string `json:"type,omitempty"`
 }
@@ -200,13 +164,13 @@ type CatalogRequest struct {
 
 //CatalogItemRequestTemplate - A structure that captures a catalog request template, to be filled in and POSTED.
 type CatalogItemRequestTemplate struct {
-	Type            string                 `json:"type"`
-	CatalogItemID   string                 `json:"catalogItemId"`
-	RequestedFor    string                 `json:"requestedFor"`
-	BusinessGroupID string                 `json:"businessGroupId"`
-	Description     string                 `json:"description"`
-	Reasons         string                 `json:"reasons"`
-	Data            map[string]interface{} `json:"data"`
+	Type            string                 `json:"type,omitempty"`
+	CatalogItemID   string                 `json:"catalogItemId,omitempty"`
+	RequestedFor    string                 `json:"requestedFor,omitempty"`
+	BusinessGroupID string                 `json:"businessGroupId,omitempty"`
+	Description     string                 `json:"description,omitempty"`
+	Reasons         string                 `json:"reasons,omitempty"`
+	Data            map[string]interface{} `json:"data,omitempty"`
 }
 
 //catalogName - This struct holds catalog name from json response.

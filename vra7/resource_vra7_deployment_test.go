@@ -1,13 +1,13 @@
 package vra7
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/terraform"
+	httpmock "gopkg.in/jarcoal/httpmock.v1"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -23,78 +23,74 @@ func init() {
 
 func TestConfigValidityFunction(t *testing.T) {
 
-	mockRequestTemplate, err := GetMockRequestTemplate()
-	utils.AssertNilError(t, err)
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
 
-	// a resource_configuration map is created with valid components
-	// all combinations of components name and properties are created with dots
-	mockConfigResourceMap := make(map[string]interface{})
-	mockConfigResourceMap["mock.test.machine1.cpu"] = 2
-	mockConfigResourceMap["mock.test.machine1.mock.storage"] = 8
+	catalogItemID := "dhbh-jhdv-ghdv-dhvdd"
+
+	path := fmt.Sprintf(sdk.RequestTemplateAPI, catalogItemID)
+	url := client.BuildEncodedURL(path, nil)
+
+	httpmock.RegisterResponder("GET", url,
+		httpmock.NewStringResponder(200, mockRequestTemplate))
+
+	resourceConfigList := make([]map[string]interface{}, 0)
+	resourceConfigurationObject1 := make(map[string]interface{})
+
+	configMap := make(map[string]interface{})
+	configMap["cpu"] = 2
+	configMap["memory"] = 1024
+
+	resourceConfigurationObject1["configuration"] = configMap
+	resourceConfigurationObject1["component_name"] = "mock.test.machine1"
+
+	resourceConfigList = append(resourceConfigList, resourceConfigurationObject1)
 
 	resourceSchema := resourceVra7Deployment().Schema
 
-	resourceDataMap := map[string]interface{}{
-		"catalog_item_id":        "abcdefghijklmn",
-		"resource_configuration": mockConfigResourceMap,
+	resourceSchemaMap := map[string]interface{}{
+		"catalog_item_id":        catalogItemID,
+		"wait_timeout":           20,
+		"resource_configuration": resourceConfigList,
 	}
 
-	mockResourceData := schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
+	mockResourceData := schema.TestResourceDataRaw(t, resourceSchema, resourceSchemaMap)
 
-	p := readProviderConfiguration(mockResourceData)
+	p, _ := readProviderConfiguration(mockResourceData, &client)
 
-	readProviderConfiguration(mockResourceData)
-	err = p.checkResourceConfigValidity(mockRequestTemplate)
+	mockRequestTemplateStruct, err := p.checkResourceConfigValidity(&client)
 	utils.AssertNilError(t, err)
+	utils.AssertNotNil(t, mockRequestTemplateStruct)
+	utils.AssertNotNil(t, mockRequestTemplateStruct.Data["mock.test.machine1"])
+	utils.AssertEqualsString(t, catalogItemID, mockRequestTemplateStruct.CatalogItemID)
 
-	mockConfigResourceMap["machine2.mock.cpu"] = 2
-	mockConfigResourceMap["machine2.storage"] = 2
+	resourceConfigurationObject2 := make(map[string]interface{})
+	resourceConfigurationObject2["configuration"] = configMap
+	resourceConfigurationObject2["component_name"] = "mock.test.machine2"
 
-	resourceDataMap = map[string]interface{}{
-		"catalog_item_id":        "abcdefghijklmn",
-		"resource_configuration": mockConfigResourceMap,
+	resourceConfigList = append(resourceConfigList, resourceConfigurationObject2)
+
+	resourceSchemaMap = map[string]interface{}{
+		"catalog_item_id":        catalogItemID,
+		"resource_configuration": resourceConfigList,
 	}
 
-	mockResourceData = schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-	readProviderConfiguration(mockResourceData)
-
-	err = p.checkResourceConfigValidity(mockRequestTemplate)
-	utils.AssertNilError(t, err)
-
-	mockConfigResourceMap["mock.machine3.vSphere.mock.cpu"] = 2
-	resourceDataMap = map[string]interface{}{
-		"catalog_item_id":        "abcdefghijklmn",
-		"resource_configuration": mockConfigResourceMap,
-	}
-
-	mockResourceData = schema.TestResourceDataRaw(t, resourceSchema, resourceDataMap)
-	p = readProviderConfiguration(mockResourceData)
+	mockResourceData = schema.TestResourceDataRaw(t, resourceSchema, resourceSchemaMap)
+	p, _ = readProviderConfiguration(mockResourceData, &client)
 
 	var mockInvalidKeys []string
-	mockInvalidKeys = append(mockInvalidKeys, "mock.machine3.vSphere.mock.cpu")
+	mockInvalidKeys = append(mockInvalidKeys, "mock.test.machine2")
 
 	validityErr := fmt.Sprintf(ConfigInvalidError, strings.Join(mockInvalidKeys, ", "))
-	err = p.checkResourceConfigValidity(mockRequestTemplate)
-	// this should throw an error as none of the string combinations (mock, mock.machine3, mock.machine3.vsphere, etc)
-	// matches the component names(mock.test.machine1 and machine2) in the request template
+	mockRequestTemplateStruct, err = p.checkResourceConfigValidity(&client)
+	// this should throw an error mock.test.machine2 does not match
+	// with the component names(mock.test.machine1 and machine2) in the request template
 	utils.AssertNotNilError(t, err)
 	utils.AssertEqualsString(t, validityErr, err.Error())
+	utils.AssertNil(t, mockRequestTemplateStruct)
 }
 
-// creates a mock request template from a request template template json file
-func GetMockRequestTemplate() (*sdk.CatalogItemRequestTemplate, error) {
-
-	mockRequestTemplateStruct := sdk.CatalogItemRequestTemplate{}
-	err := json.Unmarshal([]byte(mockRequestTemplate), &mockRequestTemplateStruct)
-	if err != nil {
-		return nil, err
-	}
-
-	return &mockRequestTemplateStruct, nil
-
-}
-
-func TestAccVra7DeploymentCreate_basic(t *testing.T) {
+func TestAccVra7Deployment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -103,95 +99,25 @@ func TestAccVra7DeploymentCreate_basic(t *testing.T) {
 			{
 				Config: testAccCheckVra7DeploymentConfig(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckVra7DeploymentExists("vra7_deployment.my_vra7_deployment"),
+					testAccCheckVra7DeploymentExists("vra7_deployment.this"),
 					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "description", "Test deployment"),
+						"vra7_deployment.this", "description", "Terraform deployment"),
 					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "reasons", "Testing the vRA 7 Terraform plugin"),
+						"vra7_deployment.this", "reasons", "Testing the vRA 7 Terraform provider"),
 					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "businessgroup_name", "Development"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration.%", "2"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration._leaseDays", "15"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration.deployment_property", "custom deployment property"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration.businessGroups", "[\"bg1\"]"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.%", "3"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.cpu", "1"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.memory", "2048"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.machine_property", "machine custom property"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccVra7DeploymentUpdate_basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckVra7DeploymentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCheckVra7DeploymentConfig(),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckVra7DeploymentExists("vra7_deployment.my_vra7_deployment"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "description", "Test deployment"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "reasons", "Testing the vRA 7 Terraform plugin"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "businessgroup_name", "Development"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration.%", "2"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration._leaseDays", "15"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration.deployment_property", "custom deployment property"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration.businessGroups", "[\"bg1\"]"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.%", "3"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.cpu", "1"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.memory", "2048"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.machine_property", "machine custom property"),
+						"vra7_deployment.this", "businessgroup_name", "Terraform-BG"),
 				),
 			},
 			{
 				Config: testAccCheckVra7DeploymentUpdateConfig(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckVra7DeploymentExists("vra7_deployment.my_vra7_deployment"),
+					testAccCheckVra7DeploymentExists("vra7_deployment.this"),
 					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "description", "Test deployment"),
+						"vra7_deployment.this", "description", "Terraform deployment"),
 					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "reasons", "Testing the vRA 7 Terraform plugin"),
+						"vra7_deployment.this", "reasons", "Testing the vRA 7 Terraform provider"),
 					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "businessgroup_name", "Development"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration.%", "2"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration._leaseDays", "15"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration.deployment_property", "updated custom deployment property"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "deployment_configuration.businessGroups", "[\"bg1\"]"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.%", "3"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.cpu", "1"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.memory", "1024"),
-					resource.TestCheckResourceAttr(
-						"vra7_deployment.my_vra7_deployment", "resource_configuration.vSphereVM1.machine_property", "updated machine custom property"),
+						"vra7_deployment.this", "businessgroup_name", "Terraform-BG"),
 				),
 			},
 		},
@@ -204,11 +130,9 @@ func testAccCheckVra7DeploymentExists(n string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
 		}
-
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No resource request ID is set")
 		}
-
 		return nil
 	}
 }
@@ -218,7 +142,6 @@ func testAccCheckVra7DeploymentDestroy(s *terraform.State) error {
 		if rs.Type != "vra7_deployment" {
 			continue
 		}
-
 		_, err := client.GetRequestResourceView(rs.Primary.ID)
 		if err == nil {
 			return err
@@ -227,52 +150,69 @@ func testAccCheckVra7DeploymentDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckVra7DeploymentUpdateConfig() string {
-	return fmt.Sprintf(`
-resource "vra7_deployment" "my_vra7_deployment" {
-count = 1
-catalog_item_name = "Basic Single Machine"
-description = "Test deployment"
-reasons = "Testing the vRA 7 Terraform plugin"
-
-deployment_configuration = {
-	_leaseDays = "15"
-	deployment_property = "updated custom deployment property"
-	businessGroups = << EOF
-	["bg1"]
-	EOF
-}
-resource_configuration = {
-	"vSphereVM1.cpu" = 1
-	"vSphereVM1.memory" = 1024
-	"vSphereVM1.machine_property" = "updated machine custom property"
-}
-wait_timeout = 20
-businessgroup_name = "Development"
-}`)
-}
-
 func testAccCheckVra7DeploymentConfig() string {
-	return fmt.Sprintf(`
-resource "vra7_deployment" "my_vra7_deployment" {
-count = 1
-catalog_item_name = "Basic Single Machine"
-description = "Test deployment"
-reasons = "Testing the vRA 7 Terraform plugin"
+	return `
+resource "vra7_deployment" "this" {
+	catalog_item_name = "Terraform-Simple-BP"
+	description = "Terraform deployment"
+	reasons = "Testing the vRA 7 Terraform provider"
+	lease_days = 20
+	deployment_configuration = {
+		"BPCustomProperty" = "custom deployment property"
+	}
+	
+	resource_configuration {
+		component_name = "vSphere1"
+		cluster = 2
+		configuration = {
+			cpu = 2
+			memory = 2048
+			vSphere1CustomProperty = "custom machine property"
+		}
+	}
+	
+	resource_configuration {
+		cluster = 2
+		component_name = "vSphere2"
+		configuration = {
+			cpu = 3
+			memory = 2048
+		}
+	}
+	wait_timeout = 20
+	businessgroup_name = "Terraform-BG"
+}`
+}
 
-deployment_configuration = {
-	_leaseDays = "15"
-	deployment_property = "custom deployment property"
-	businessGroups = << EOF
-	["bg1"]
-	EOF
-}
-resource_configuration = {
-	"vSphereVM1.cpu" = 1
-	"vSphereVM1.memory" = 2048
-	"vSphereVM1.machine_property" = "machine custom property"
-}
-wait_timeout = 20
-businessgroup_name = "Development"
-}`)
+func testAccCheckVra7DeploymentUpdateConfig() string {
+	return `
+resource "vra7_deployment" "this" {
+	catalog_item_name = "Terraform-Simple-BP"
+	description = "Terraform deployment"
+	reasons = "Testing the vRA 7 Terraform provider"
+	lease_days = 20
+	deployment_configuration = {
+		"BPCustomProperty" = "custom deployment property"
+	}
+	
+	resource_configuration {
+		component_name = "vSphere1"
+		cluster = 1
+		configuration = {
+			cpu = 4
+			memory = 2048
+			vSphere1CustomProperty = "custom machine property"
+		}
+	}
+	resource_configuration {
+		cluster = 1
+		component_name = "vSphere2"
+		configuration = {
+			cpu = 2
+			memory = 2048
+		}
+	}
+	wait_timeout = 20
+	businessgroup_name = "Terraform-BG"
+}`
 }

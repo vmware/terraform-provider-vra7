@@ -17,12 +17,25 @@ Requirements
 
 * [Terraform 0.9 or above](https://www.terraform.io/downloads.html)
 * [Go Language 1.11.4 or above](https://golang.org/dl/)
-* [vRealize Automation 7.4 or above](https://www.vmware.com/products/vrealize-automation.html)
+* [vRealize Automation 7.5 or above](https://www.vmware.com/products/vrealize-automation.html)
 
 Using the provider
 ----------------------
 
 See the [vra7 documentation](https://www.terraform.io/docs/providers/vra7/index.html) to get started using the vRealize Automation 7 provider.
+
+See vra7_deployment resource examples [here] (examples/README.md)
+
+## Execution
+These are the Terraform commands that can be used for the vRA plugin:
+* `terraform init` - The init command is used to initialize a working directory containing Terraform configuration files.
+* `terraform plan` - Plan command shows plan for resources like how many resources will be provisioned and how many will be destroyed.
+* `terraform apply` - apply is responsible to execute actual calls to provision resources.
+* `terraform refresh` - By using the refresh command you can check the status of the request.
+* `terraform show` - show will set a console output for resource configuration and request status.
+* `terraform destroy` - destroy command will destroy all the  resources present in terraform configuration file.
+
+Navigate to the location where `main.tf` and binary are placed and use the above commands as needed.
 
 Upgrading the provider
 ----------------------
@@ -36,150 +49,158 @@ terraform init -upgrade
 to upgrade to the latest stable version of the vra7 provider. See the [Terraform website](https://www.terraform.io/docs/configuration/providers.html#provider-versions)
 for more information on provider upgrades, and how to set version constraints on your provider.
 
-## Configure
-The VMware vRA terraform configuration file contains two objects.
+Migrating from previous versions to version 1.0.0, issues fixed and enhancements
+---------------------------------------------------------------------------------
 
-### Provider
-This part contains service provider details.
+There are some schema changes in the provider version 1.0.0. These changes are made to support vra7 deployment Day 2 actions, detailed information of the deployment in the state file, getting access to more deployment and resource level properties, esp. `ip_address`, etc. See the release notes for more detail.
 
-Provider block contains four mandatory fields:
-* `username` - vRA portal username
-* `password` - vRA portal password
-* `tenant` - vRA portal tenant
-* `host` - End point of REST API
-* `insecure` - In case of self-signed certificates, default value is false
+### Previous main.tf file
 
-**Example:**
-```
-    provider "vra7" {
-      username = "vRAUser1@vsphere.local"
-      password = "password123!"
-      tenant = "corp.local.tenant"
-      host = "http://myvra.example.com/"
-      insecure = false
+```hcl
+provider "vra7" {
+  username = var.username
+  password = var.password
+  tenant   = var.tenant
+  host     = var.host
+}
+
+resource "vra7_deployment" "this" {
+    count                      = 1
+    catalog_item_name          = "multi_machine_catalog"
+    businessgroup_name         = Development
+    wait_timeout               = 20
+    deployment_configuration = {
+        "_leaseDays"                 = "15"                   //number of lease days
+        "BPCustomProp"               = "custom depl prop"     //custom property in BP required while requesting a catalog item
+        "Container"                  = "App.Container"        //property of a property group
+        "Container.Auth.User"        = "var.container_user"   //property of a property group
+        "Container.Auth.Password"    = "var.container_pw"     //property of a property group
+        "Container.Connection.Port"  = "var.container_port"   //property of a property group
     }
 
-```
-
-### Resource
-This part contains any resource that can be deployed on that service provider.
-For example, in our case machine blueprint, software blueprint, complex blueprint, network, etc.
-
-**Syntax:**
-```
-resource "vra7_deployment" "<resource_name1>" {
+    resource_configuration = {
+        "Windows.cpu"            = "2"                //Windows Machine CPU
+        "Windows.memory"         = "1024"             //Windows Machine memory
+        "Windows.vm_custom_prop" = "a custom prop"    //Windows custom property called vm_custom_property
+        "Windows._cluster"       = "2"                //Windows cluster size
+        "Linux.cpu"              = "2"                //Linux Machine CPU
+        "http.hostname"          = "xyz.com"          //HTTP (apache) hostname
+        "http.network_mode"      = "bridge"           //HTTP (apache) network mode
+    }
 }
 ```
+Migrating to the latest version would require to make the following changes in the TF confile(main.tf).
 
-The resource block contains mandatory and optional fields.
+* `_leaseDays` is moved out of of deployment_configuration and added as a property in the schema. The name of the property is `lease_days`. This can be changed for Change Lease Day 2 action.
+* We create a `resource_configuration` block for each component. There are three components, Windows, Linux and http.
+For instance, the resource_configuration for Windows component would look like this:
 
-**Mandatory:**
-
-One of catalog_item_name or catalog_item_id must be specified in the resource configuration.
-* `catalog_item_name` - catalog_item_name is a field which contains valid catalog item name from your vRA
-* `catalog_item_id` - catalog_item_id is a field which contains a valid catalog item id from your vRA
-
-**Optional:**
-* `description` - This is an optional field. You can specify a description for your deployment.
-* `reasons` - This is an optional field. You can specify the reasons for this deployment.
-* `businessgroup_id` - This is an optional field. You can specify a different Business Group ID from what provided by default in the template request, provided that your account is allowed to do it.
-* `businessgroup_name` - This is an optional field. You can specify a different Business Group name from what provided by default in the template request, provided that your account is allowed to do it.
-* `count` - This field is used to create replicas of resources. If count is not provided then it will be considered as 1 by default.
-* `deployment_configuration` - This is an optional field. It can be used to specify deployment level properties like _leaseDays, _number_of_instances or any custom properties of the deployment. Key is any field name of catalog item and value is any valid user input to the respective field..
-* `resource_configuration` - This is an optional field. If blueprint properties have default values or no mandatory property value is required then you can skip this field from terraform configuration file. This field contains user inputs to catalog services. Value of this field is in key value pair. Key is service.field_name and value is any valid user input to the respective field.
-* `wait_timeout` - This is an optional field with a default value of 15. It defines the time to wait (in minutes) for a resource operation to complete successfully.
-
-
-**Example 1:**
-```
-resource "vra7_deployment" "example_machine1" {
-  catalog_item_name = "CentOS 6.3"
-  reasons      = "I have some"
-  description  = "deployment via terraform"
-   resource_configuration = {
-         "Linux.cpu" = "1"
-         "Windows2008R2SP1.cpu" =  "2"
-         "Windows2012.cpu" =  "4"
-         "Windows2016.cpu" =  "2"
-     }
-     deployment_configuration = {
-         "_leaseDays" = "5"
-     }
-     count = 3
-}
-```
-
-**Example 2:**
-```
-resource "vra7_deployment" "example_machine2" {
-  catalog_item_id = "e5dd4fba7f96239286be45ed"
-   resource_configuration = {
-         "Linux.cpu" = "1"
-         "Windows2008.cpu" =  "2"
-         "Windows2012.cpu" =  "4"
-         "Windows2016.cpu" =  "2"
-     }
-     count = 4
-}
-
-```
-
-Save this configuration in `main.tf` in a path where the binary is placed.
-
-### Deployment Destroy
-In case you are encountering the following error in vRA7:
-```
-Insufficient entitlement to destroy VM
-```
-Please set `deployment_destroy = true` which will cause the provider to destroy the deployment resource instead.
-
-### Nested structures
-
-At the moment Terraform SDK does not support nested dynamic types, which are used by vRA API.
-Issue tracking development of this feature is on GitHub (Support the pseudo dynamic type)[https://github.com/hashicorp/terraform-plugin-sdk/issues/248].
-
-In vRA Terraform Resource you can do it by passing JSON string, but only inside `deployment_configuration` for time being. You can use `jsonencode` Terraform function or multiline strings.
-It's based on workaround used by other providers such as AWS and (IAM Policy resource)[https://www.terraform.io/docs/providers/aws/r/iam_policy.html#example-usage].
-
-**Example 1:**
 ```hcl
-resource "vra7_deployment" "example_machine1" {
-  catalog_item_name = "vNet"
-
-     deployment_configuration = {
-        "networkName" = "test VNET"
-        "businessGroups" = jsonencode("[\"bgTest1\", \"bgTest2\"]")
-     }
+resource_configuration {
+    component_name              = "Windows"          //This is the component name and need not be prefixed with all properties
+    cluster                     = 2                  //cluster is added as a property in the schema. Modifying it will do the
+                                                     // Scale In/Out Day 2 actions
+    configuration = {
+        cpu                     = 2
+        memory                  = 1024
+        vm_custom_prop          = "a custom prop"
+    }
 }
 ```
+* `_cluster` is added as a property in the schema. It can be modified for Scale In/Scale Out Day 2 actions
+* Support for deployemnt and resource properties of type array of strings in the blocks deployment_configuration as well as configuration under resource_configuration respectively as shown in the example below.
+* `ip_address` need not be added in the main.tf. It can be accessed from the state file. It is added as a property in the resource_configuration schema. Please refer to the documentation.
 
-**Example 2:**
+### The new main.tf file would look as follows:
+
 ```hcl
-resource "vra7_deployment" "example_machine1" {
-  catalog_item_name = "vNet"
+provider "vra7" {
+  username = var.username
+  password = var.password
+  tenant   = var.tenant
+  host     = var.host
+}
 
-     deployment_configuration = {
-        "networkName" = "test VNET"
-        "businessGroups" = <<EOF
+resource "vra7_deployment" "this" {
+    count                      = 1
+    catalog_item_name          = "multi_machine_catalog"
+    businessgroup_name         = Development
+    wait_timeout               = 20
+    lease_days                 = 15                           //number of lease days
+
+    deployment_configuration = {
+        "BPCustomProp"               = "custom depl prop"     //custom property in BP required while requesting a catalog item
+        "Container"                  = "App.Container"        //property of a property group
+        "Container.Auth.User"        = "var.container_user"   //property of a property group
+        "Container.Auth.Password"    = "var.container_pw"     //property of a property group
+        "Container.Connection.Port"  = "var.container_port"   //property of a property group
+        "businessGroups" = <<EOF                              //this is an example to property of type array of strings
         [
-          "bgTest1",
-          "bgTest2"
+            "bgTest1",
+            "bgTest2"
         ]
         EOF
-     }
+    }
+
+    resource_configuration {
+        component_name              = "Windows"       //This is the component name and need not be prefixed with all properties
+        cluster                     = 2               //cluster is added as a property in the schema. Modifying it will do the
+                                                      // Scale In/Out Day 2 actions
+        configuration = {
+            cpu                     = 2
+            memory                  = 1024
+            vm_custom_prop          = "a custom prop"
+        }
+    }
+
+    resource_configuration {
+        component_name              = "Linux"      //This is the component name and need not be prefixed with all properties
+        configuration = {
+            cpu                     = 2
+            security_tag = <<EOF                   //this is an example to property of type array of strings
+            [
+                "dev_sg",
+                "prod_sg"
+            ]
+            EOF
+        }
+    }
+
+    resource_configuration {
+        component_name              = "http"      //This is the component name and need not be prefixed with all properties
+        configuration = {
+            hostname                = "xyz.com"          //HTTP (apache) hostname
+            network_mode            = "bridge"           //HTTP (apache) network mode
+        }
+    }
 }
 ```
 
-## Execution
-These are the Terraform commands that can be used for the vRA plugin:
-* `terraform init` - The init command is used to initialize a working directory containing Terraform configuration files.
-* `terraform plan` - Plan command shows plan for resources like how many resources will be provisioned and how many will be destroyed.
-* `terraform apply` - apply is responsible to execute actual calls to provision resources.
-* `terraform refresh` - By using the refresh command you can check the status of the request.
-* `terraform show` - show will set a console output for resource configuration and request status.
-* `terraform destroy` - destroy command will destroy all the  resources present in terraform configuration file.
+## Import vra7_deployment
 
-Navigate to the location where `main.tf` and binary are placed and use the above commands as needed.
+Import functionality is now supported for the vra7_deployment resource. If there is an exiting deployment, it can be imported by catalog item request id.
+
+### main.tf
+
+```hcl
+provider "vra7" {
+  username = var.username
+  password = var.password
+  tenant   = var.tenant
+  host     = var.host
+}
+
+resource vra7_deployment "this" {
+    // the properties can be added once the import is completed by referring to the state file
+}
+```
+terraform import vra7_deployment.this <request_id>
+
+## Data source vra7_deployment
+
+A data source for vra7_deployment can also be created using either deployment ID or catalog item request id.
+Refer to the documentation [here](website/docs/d/vra7_deployment.html.markdown)
+
 
 Building the provider
 ---------------------
@@ -211,29 +232,6 @@ $ make build
 $ $GOPATH/bin/terraform-provider-vra7
 ...
 ```
-
-# Scripts
-
-For some older installations prior to v0.2.0 the **update_resource_state.sh** may need to be run.
-
-There are few changes in the way the terraform config file is written.
-1. The resource name is renamed to vra7_deployment from vra7_resource.
-2. catalog_name is renamed to catalog_item_name and catalog_id is renamed to catalog_item_id.
-3. General properties of deployment like description and reasons are to be specified at the resource level map instead of deployment_configuration.
-4. catalog_configuration map is removed.
-5. Custom/optional properties of deployment are to be specified in deployment_configuration instead of catalog_configuration.
-
-These changes in the config file will lead to inconsistency in the `terraform.tfstate` file of the existing resources provisioned using terraform.
-The existing state files can be converted to the new format using the script, `update_resource_state.sh` under the scripts folder.
-
-Note: This script will only convert the state file. The changes to the config file(.tf file) still needs to be done manually.
-
-## How to use the script
-
-1. Copy the script, `script/update_resource_state.sh` in the same directory as your terraform.tfstate file.
-2. Change the permission of the script, for example `chmod 0700 update_resource_state.sh`.
-3. Run the script, `./update_resource_state.sh`.
-4. The terraform.tfstate will be updated to the new format and a back-up of the old file is saved as terraform.tfstate_back
 
 Contributing
 ------------

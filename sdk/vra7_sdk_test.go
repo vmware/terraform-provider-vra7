@@ -156,28 +156,28 @@ func TestGetRequestResourceView(t *testing.T) {
 	utils.AssertNil(t, resourceView)
 }
 
-func TestGetResourceActions(t *testing.T) {
+func TestGetRequestResources(t *testing.T) {
 
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
 	mockRequestID := "6ec160e5-41c5-4b1d-8ddc-e89c426957c6"
-	path := fmt.Sprintf(GetResourceAPI, mockRequestID)
+	path := fmt.Sprintf(GetRequestResourcesAPI, mockRequestID)
 	url := client.BuildEncodedURL(path, nil)
-	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, resourceActionsResponse))
+	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, resourcesResponse))
 
-	resourceActions, err := client.GetResourceActions(mockRequestID)
+	resources, err := client.GetRequestResources(mockRequestID)
 	utils.AssertNilError(t, err)
-	utils.AssertNotNil(t, resourceActions)
+	utils.AssertNotNil(t, resources)
 
 	// invalid request id
 	mockRequestID = "gd78tegd-0e737egd-jhdg"
 	httpmock.Reset()
 	httpmock.RegisterResponder("GET", url,
 		httpmock.NewStringResponder(20111, requestStatusErrResponse))
-	resourceActions, err = client.GetResourceActions(mockRequestID)
+	resources, err = client.GetRequestResources(mockRequestID)
 	utils.AssertNotNilError(t, err)
-	utils.AssertNil(t, resourceActions)
+	utils.AssertNil(t, resources)
 }
 
 func TestGetResourceActionTemplate(t *testing.T) {

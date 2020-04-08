@@ -3,16 +3,16 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/op/go-logging"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/op/go-logging"
 )
 
 // terraform provider constants
 const (
 	// utility constants
-
 	LoggerID = "terraform-provider-vra7"
 )
 
@@ -58,8 +58,8 @@ func ConvertInterfaceToString(interfaceData interface{}) string {
 	return stringData
 }
 
-// Parse value and if it's JSON string, unmarshal it
-func UnmarshalJsonStringIfNecessary(field string, value interface{}) interface{} {
+// UnmarshalJSONStringIfNecessary parses value and if it's JSON string, unmarshal it
+func UnmarshalJSONStringIfNecessary(field string, value interface{}) interface{} {
 	// Cast value to string. Provider schema requires DeploymentConfiguration to be map[string]string
 	stringValue, ok := value.(string)
 
@@ -103,26 +103,27 @@ func UpdateResourceConfigurationMap(
 
 // ReplaceValueInRequestTemplate replaces the value for a given key in a catalog
 // request template.
-func ReplaceValueInRequestTemplate(templateInterface map[string]interface{}, field string, value interface{}) (map[string]interface{}, bool) {
+func ReplaceValueInRequestTemplate(templateInterface map[string]interface{}, field string, value interface{}) bool {
 	var replaced bool
 	//Iterate over the map to get field provided as an argument
-	for key := range templateInterface {
+	for key, val := range templateInterface {
 		//If value type is map then set recursive call which will fiend field in one level down of map interface
-		if reflect.ValueOf(templateInterface[key]).Kind() == reflect.Map {
-			template, _ := templateInterface[key].(map[string]interface{})
-			templateInterface[key], replaced = ReplaceValueInRequestTemplate(template, field, value)
+		if reflect.ValueOf(val).Kind() == reflect.Map {
+			replaced = ReplaceValueInRequestTemplate(val.(map[string]interface{}), field, value)
 			if replaced == true {
-				return templateInterface, true
+				return true
 			}
-		} else if key == field {
+		} else if key == field && val != value {
 			//If value type is not map then compare field name with provided field name
 			//If both matches then update field value with provided value
 			templateInterface[key] = value
-			return templateInterface, true
+			if reflect.ValueOf(value).Kind() == reflect.String {
+				templateInterface[key] = UnmarshalJSONStringIfNecessary(field, value)
+			}
+			return true
 		}
 	}
-	//Return updated map interface type
-	return templateInterface, replaced
+	return replaced
 }
 
 // AddValueToRequestTemplate modeled after replaceValueInRequestTemplate
@@ -135,9 +136,23 @@ func AddValueToRequestTemplate(templateInterface map[string]interface{}, field s
 			template, _ := v.(map[string]interface{})
 			v = AddValueToRequestTemplate(template, field, value)
 		} else { //if i == "data" {
-			templateInterface[field] = value
+			templateInterface[field] = UnmarshalJSONStringIfNecessary(field, value)
 		}
 	}
 	//Return updated map interface type
 	return templateInterface
+}
+
+// ResourceMapper returns the mapping of resource attributes from ResourceView APIs
+// to Catalog Item Request Template APIs
+func ResourceMapper() map[string]string {
+	m := make(map[string]string)
+	m["MachineName"] = "name"
+	m["MachineDescription"] = "description"
+	m["MachineMemory"] = "memory"
+	m["MachineStorage"] = "storage"
+	m["MachineCPU"] = "cpu"
+	m["MachineStatus"] = "status"
+	m["MachineType"] = "type"
+	return m
 }

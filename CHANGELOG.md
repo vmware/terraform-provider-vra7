@@ -1,4 +1,28 @@
-## 0.5.1 (Unreleased)
+## 1.0.0 (Unreleased)
+
+BUG FIXES:
+* Terraform gets only first VM with _number_of_instances or _cluster > 1  ([#39](https://github.com/terraform-providers/terraform-provider-vra7/issues/39))
+* Terraform refresh does not work as intended ([#38](https://github.com/terraform-providers/terraform-provider-vra7/issues/38))
+* VRA Provider deletes resources from state file before receiving any "SUCCESSFUL" status response from VRA during terraform destroy ([#33](https://github.com/terraform-providers/terraform-provider-vra7/issues/33))
+* Terraform apply returns empty ip address ([#27](https://github.com/terraform-providers/terraform-provider-vra7/issues/27))
+* IPAddress return is empty with latest release of vRealize Automation ([#16](https://github.com/terraform-providers/terraform-provider-vra7/issues/16))
+* Terraform adds resource in state file even though the request_status is "FAILED" ([#37](https://github.com/terraform-providers/terraform-provider-vra7/issues/37))
+
+FEATURES:
+* The resource schema is modified to have more attributes for the vra7_deployment resource
+* Feature request: Day 2: Change the number of VMs created by the vRA blueprint ([#47](https://github.com/terraform-providers/terraform-provider-vra7/issues/47))
+* Does 'import' work? ([#29](https://github.com/terraform-providers/terraform-provider-vra7/issues/29))
+* Need to import existing VMs ([#43](https://github.com/terraform-providers/terraform-provider-vra7/issues/43))
+* Support Deployment Day 2 Change Lease action ([#54](https://github.com/terraform-providers/terraform-provider-vra7/issues/54))
+* Create a data source for vra7_deployment resource ([#55](https://github.com/terraform-providers/terraform-provider-vra7/issues/55))
+
+IMPROVEMENTS:
+* Cleanup README
+* Show all the data in the state file that is returned from a deployment resource GET ([#41](https://github.com/terraform-providers/terraform-provider-vra7/issues/41))
+* Cannot pass array of values in element of deployment_configuration or resource_configuration ([#45](https://github.com/terraform-providers/terraform-provider-vra7/issues/45))
+* `ip_address` can be accessed from the resource_configuration schema as a first class attribute
+
+
 ## 0.5.0 (November 06, 2019)
 FEATURES:
 

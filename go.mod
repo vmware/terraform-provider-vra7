@@ -8,6 +8,7 @@ require (
 	github.com/hashicorp/hil v0.0.0-20190212132231-97b3a9cdfa93 // indirect
 	github.com/hashicorp/terraform v0.12.6
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/op/go-logging v0.0.0-20160211212156-b2cb9fa56473
 	github.com/stretchr/testify v1.3.0
