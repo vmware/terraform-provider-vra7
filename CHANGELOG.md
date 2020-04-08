@@ -1,4 +1,4 @@
-## 1.0.0 (Unreleased)
+## 1.0.0 (April 08, 2020)
 
 BUG FIXES:
 * Terraform gets only first VM with _number_of_instances or _cluster > 1  ([#39](https://github.com/terraform-providers/terraform-provider-vra7/issues/39))
