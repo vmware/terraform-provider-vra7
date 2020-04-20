@@ -109,7 +109,7 @@ func expandResourceConfiguration(rConfigurations []interface{}) []sdk.ResourceCo
 	return configs
 }
 
-func flattenResourceConfigurations(configs []sdk.ResourceConfigurationStruct) []map[string]interface{} {
+func flattenResourceConfigurations(configs []sdk.ResourceConfigurationStruct, clusterCountMap map[string]int) []map[string]interface{} {
 	if len(configs) == 0 {
 		return make([]map[string]interface{}, 0)
 	}
@@ -128,7 +128,7 @@ func flattenResourceConfigurations(configs []sdk.ResourceConfigurationStruct) []
 		helper["status"] = config.Status
 		helper["request_state"] = config.RequestState
 		helper["resource_type"] = config.ResourceType
-		helper["cluster"] = config.Cluster
+		helper["cluster"] = clusterCountMap[config.ComponentName]
 		helper["ip_address"] = config.IPAddress
 		rConfigs = append(rConfigs, helper)
 	}

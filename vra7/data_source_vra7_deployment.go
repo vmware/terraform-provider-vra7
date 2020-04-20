@@ -1,7 +1,6 @@
 package vra7
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -116,9 +115,7 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 		return errTemplate
 	}
 
-	j, _ := json.Marshal(requestResourceView)
-	log.Critical("the view is %v ", string(j))
-
+	clusterCountMap := make(map[string]int)
 	var resourceConfigList []sdk.ResourceConfigurationStruct
 	for _, resource := range requestResourceView.Content {
 		rMap := resource.(map[string]interface{})
@@ -154,17 +151,9 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 			if rMap["status"] != nil {
 				resourceConfigStruct.Status = rMap["status"].(string)
 			}
-
-			// the cluster value is fetched from scale out action template as the resourceViews API does not return that information
-			deploymentResourceActions, _ := vraClient.GetResourceActions(parentResourceID)
-			deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
-			scaleOutActionID := deploymentActionsMap["Scale Out"]
-			resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(parentResourceID, scaleOutActionID)
-			actionTemplateResourceDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, componentName)
-			rDataMap := actionTemplateResourceDataMap["data"].(map[string]interface{})
-			var cluster int = int(rDataMap["_cluster"].(float64))
-			resourceConfigStruct.Cluster = cluster
-			// end
+			// the cluster value is calculated from the map based on the component name as the
+			// resourceViews API does not return that information
+			clusterCountMap[componentName] = clusterCountMap[componentName] + 1
 
 			resourceConfigList = append(resourceConfigList, resourceConfigStruct)
 
@@ -204,7 +193,7 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 			}
 		}
 	}
-	if err := d.Set("resource_configuration", flattenResourceConfigurations(resourceConfigList)); err != nil {
+	if err := d.Set("resource_configuration", flattenResourceConfigurations(resourceConfigList, clusterCountMap)); err != nil {
 		return fmt.Errorf("error setting resource configuration - error: %v", err)
 	}
 	d.SetId(id.(string))
