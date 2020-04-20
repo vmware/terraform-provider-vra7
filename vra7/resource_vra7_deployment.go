@@ -171,14 +171,19 @@ func resourceVra7DeploymentCreate(d *schema.ResourceData, meta interface{}) erro
 
 	requestTemplate.Description = p.Description
 	requestTemplate.Reasons = p.Reasons
-	requestTemplate.BusinessGroupID = p.BusinessGroupID
+	// if business group is not provided, the default business group in the request template is used
+	if p.BusinessGroupID != "" {
+		requestTemplate.BusinessGroupID = p.BusinessGroupID
+	}
 	requestTemplate.Data["_leaseDays"] = p.Lease
 	for field, value := range p.DeploymentConfiguration {
 		requestTemplate.Data[field] = utils.UnmarshalJSONStringIfNecessary(field, value)
 	}
 
 	for _, rConfig := range p.ResourceConfiguration {
-		rConfig.Configuration["_cluster"] = rConfig.Cluster
+		if rConfig.Cluster != 0 {
+			rConfig.Configuration["_cluster"] = rConfig.Cluster
+		}
 		for propertyName, propertyValue := range rConfig.Configuration {
 			requestTemplate.Data[rConfig.ComponentName] = updateRequestTemplate(
 				requestTemplate.Data[rConfig.ComponentName].(map[string]interface{}),
@@ -193,7 +198,7 @@ func resourceVra7DeploymentCreate(d *schema.ResourceData, meta interface{}) erro
 	catalogRequest, err := vraClient.RequestCatalogItem(requestTemplate)
 
 	if err != nil {
-		return fmt.Errorf("The catalog item qequest failed with error %v", err)
+		return fmt.Errorf("The catalog item request failed with error %v", err)
 	}
 	_, err = waitForRequestCompletion(d, meta, catalogRequest.ID)
 	if err != nil {
@@ -270,8 +275,8 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 			if oldResourceConfig.ComponentName != "" {
 				deploymentResourceActions, _ := vraClient.GetResourceActions(p.DeploymentID)
 				deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
-				if oldResourceConfig.Cluster != newResourceConfig.Cluster {
-					if oldResourceConfig.Cluster < newResourceConfig.Cluster {
+				if newResourceConfig.Cluster != 0 && oldResourceConfig.Cluster != newResourceConfig.Cluster {
+					if oldResourceConfig.Cluster < newResourceConfig.Cluster && deploymentActionsMap[sdk.ScaleOut] != "" {
 						// Scale Out Day 2 operation
 						scaleOutActionID := deploymentActionsMap[sdk.ScaleOut]
 						// get the action template for scale out
@@ -298,7 +303,7 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 							return err
 						}
 						log.Info("Successfully completed the Scale In action for the deployment with id %v.", p.DeploymentID)
-					} else if oldResourceConfig.Cluster > newResourceConfig.Cluster {
+					} else if oldResourceConfig.Cluster > newResourceConfig.Cluster && deploymentActionsMap[sdk.ScaleIn] != "" {
 						// Scale In Day 2 operation
 						scaleInActionID := deploymentActionsMap[sdk.ScaleIn]
 						// get the action template for scale in
@@ -398,6 +403,7 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Resource view failed to load with the error %v", errTemplate)
 	}
 
+	clusterCountMap := make(map[string]int)
 	var resourceConfigList []sdk.ResourceConfigurationStruct
 	for _, resource := range requestResourceView.Content {
 		rMap := resource.(map[string]interface{})
@@ -433,18 +439,9 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			if rMap["status"] != nil {
 				resourceConfigStruct.Status = rMap["status"].(string)
 			}
-
-			// the cluster value is fetched from scale out action template as the resourceViews API does not return that information
-			deploymentResourceActions, _ := vraClient.GetResourceActions(parentResourceID)
-			deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
-			scaleOutActionID := deploymentActionsMap["Scale Out"]
-			resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(parentResourceID, scaleOutActionID)
-			actionTemplateResourceDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, componentName)
-			rDataMap := actionTemplateResourceDataMap["data"].(map[string]interface{})
-			var cluster int = int(rDataMap["_cluster"].(float64))
-			resourceConfigStruct.Cluster = cluster
-			// end
-
+			// the cluster value is calculated from the map based on the component name as the
+			// resourceViews API does not return that information
+			clusterCountMap[componentName] = clusterCountMap[componentName] + 1
 			resourceConfigList = append(resourceConfigList, resourceConfigStruct)
 
 		} else if resourceType == sdk.DeploymentResourceType {
@@ -483,7 +480,7 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			}
 		}
 	}
-	if err := d.Set("resource_configuration", flattenResourceConfigurations(resourceConfigList)); err != nil {
+	if err := d.Set("resource_configuration", flattenResourceConfigurations(resourceConfigList, clusterCountMap)); err != nil {
 		return fmt.Errorf("error setting resource configuration - error: %v", err)
 	}
 
@@ -583,11 +580,6 @@ func checkConfigValuesValidity(d *schema.ResourceData) error {
 	// If both catalog_item_name and catalogItemName return an error
 	if catalogItemID != "" && catalogItemName != "" {
 		return fmt.Errorf("Provide either a catalog_item_name or a catalog_item_id in the configuration")
-	}
-
-	// If businessgroupID and businessgroupName both not provided then return an error
-	if businessgroupID == "" && businessgroupName == "" {
-		return fmt.Errorf("Provide either a businessgroup_id or a businessgroup_name in the configuration")
 	}
 
 	// If both businessgroupID and businessgroupName return an error

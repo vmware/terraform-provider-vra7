@@ -275,7 +275,7 @@ func (c *APIClient) GetResourceActions(resourceID string) ([]Operation, error) {
 // GetResourceActionTemplate get the action template corresponding to the action id
 func (c *APIClient) GetResourceActionTemplate(resourceID, actionID string) (*ResourceActionTemplate, error) {
 	getActionTemplatePath := fmt.Sprintf(GetActionTemplateAPI, resourceID, actionID)
-	log.Info("Call GET to fetch the reconfigure action template %v ", getActionTemplatePath)
+	log.Info("Call GET to fetch the action template %v ", getActionTemplatePath)
 	url := c.BuildEncodedURL(getActionTemplatePath, nil)
 	resp, respErr := c.Get(url, nil)
 	if respErr != nil {
