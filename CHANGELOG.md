@@ -1,4 +1,9 @@
-## 1.1.0 (Unreleased)
+## 1.0.1 (Unreleased)
+
+BUG FIXES:
+* Terraform crash : rpc error: code = Unavailable desc = transport is closing ([#59](https://github.com/terraform-providers/terraform-provider-vra7/issues/59))
+* Provider 1.0.0 - Required to specify all values even if there's a default specified in the blueprint ([#60](https://github.com/terraform-providers/terraform-provider-vra7/issues/60))
+
 ## 1.0.0 (April 08, 2020)
 
 BUG FIXES:
