@@ -161,8 +161,16 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 			scaleOutActionID := deploymentActionsMap["Scale Out"]
 			resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(parentResourceID, scaleOutActionID)
 			actionTemplateResourceDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, componentName)
-			rDataMap := actionTemplateResourceDataMap["data"].(map[string]interface{})
-			var cluster int = int(rDataMap["_cluster"].(float64))
+
+			// if scaling is disabled in the blueprint we get an empty "data" field, in that case we assume cluster value to be "1"
+			var rDataMap map[string]interface{}
+			var cluster int
+			if actionTemplateResourceDataMap["data"] != nil {
+				rDataMap = actionTemplateResourceDataMap["data"].(map[string]interface{})
+				cluster = int(rDataMap["_cluster"].(float64))
+			} else {
+				cluster = 1
+			}
 			resourceConfigStruct.Cluster = cluster
 			// end
 
