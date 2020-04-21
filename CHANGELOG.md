@@ -1,4 +1,4 @@
-## 1.0.1 (Unreleased)
+## 1.0.1 (April 21, 2020)
 
 BUG FIXES:
 * Terraform crash : rpc error: code = Unavailable desc = transport is closing ([#59](https://github.com/terraform-providers/terraform-provider-vra7/issues/59))
