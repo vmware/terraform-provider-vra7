@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	httpmock "gopkg.in/jarcoal/httpmock.v1"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-vra7/sdk"
 	"github.com/terraform-providers/terraform-provider-vra7/utils"
 )
@@ -34,7 +34,7 @@ func TestConfigValidityFunction(t *testing.T) {
 	httpmock.RegisterResponder("GET", url,
 		httpmock.NewStringResponder(200, mockRequestTemplate))
 
-	resourceConfigList := make([]map[string]interface{}, 0)
+	resourceConfigList := make([]interface{}, 0)
 	resourceConfigurationObject1 := make(map[string]interface{})
 
 	configMap := make(map[string]interface{})
