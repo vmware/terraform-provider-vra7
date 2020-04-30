@@ -11,7 +11,7 @@ import (
 
 func resourceConfigurationSchema(computed bool) *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: !computed,
 		Computed: computed,
 		Elem: &schema.Resource{
@@ -25,6 +25,12 @@ func resourceConfigurationSchema(computed bool) *schema.Schema {
 					Type:     schema.TypeMap,
 					Optional: true,
 					Computed: true,
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+						if old != "" && new == "" {
+							return true
+						}
+						return false
+					},
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
 					},
