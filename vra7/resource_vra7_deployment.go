@@ -266,8 +266,8 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	// get the old and new resource_configuration data
 	old, new := d.GetChange("resource_configuration")
-	oldResourceConfigList := expandResourceConfiguration(old.(*schema.Set).List())
-	newResourceConfigList := expandResourceConfiguration(new.(*schema.Set).List())
+	oldResourceConfigList := expandResourceConfiguration(old)
+	newResourceConfigList := expandResourceConfiguration(new)
 
 	if d.HasChange("resource_configuration") {
 		for _, newResourceConfig := range newResourceConfigList {
@@ -603,7 +603,7 @@ func readProviderConfiguration(d *schema.ResourceData, vraClient *sdk.APIClient)
 		Lease:                   d.Get("lease_days").(int),
 		DeploymentID:            strings.TrimSpace(d.Get("deployment_id").(string)),
 		WaitTimeout:             d.Get("wait_timeout").(int) * 60,
-		ResourceConfiguration:   expandResourceConfiguration(d.Get("resource_configuration").(*schema.Set).List()),
+		ResourceConfiguration:   expandResourceConfiguration(d.Get("resource_configuration")),
 		DeploymentDestroy:       d.Get("deployment_destroy").(bool),
 		DeploymentConfiguration: d.Get("deployment_configuration").(map[string]interface{}),
 	}
