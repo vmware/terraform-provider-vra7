@@ -26,7 +26,7 @@ func resourceConfigurationSchema(computed bool) *schema.Schema {
 					Optional: true,
 					Computed: true,
 					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-						if old != "" && new == "" {
+						if (old != "" && new == "") || (old == "" && new == "") {
 							return true
 						}
 						return false
@@ -89,10 +89,10 @@ func resourceConfigurationSchema(computed bool) *schema.Schema {
 	}
 }
 
-func expandResourceConfiguration(rConfigurations []interface{}) []sdk.ResourceConfigurationStruct {
-	configs := make([]sdk.ResourceConfigurationStruct, 0, len(rConfigurations))
+func expandResourceConfiguration(rConfigurations interface{}) []sdk.ResourceConfigurationStruct {
+	configs := make([]sdk.ResourceConfigurationStruct, 0, len(rConfigurations.([]interface{})))
 
-	for _, config := range rConfigurations {
+	for _, config := range rConfigurations.([]interface{}) {
 		configMap := config.(map[string]interface{})
 
 		rConfig := sdk.ResourceConfigurationStruct{
