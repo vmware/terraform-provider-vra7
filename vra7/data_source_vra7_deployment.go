@@ -186,13 +186,10 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 					dateCreated := rMap["dateCreated"].(string)
 					lastUpdated := rMap["lastUpdated"].(string)
 					resourceID := rMap["resourceId"].(string)
-					// if the resource type is VMs, update the resource_configuration attribute
 					data := rMap["data"].(map[string]interface{})
-					// componentName := data["Component"].(string)
 					parentResourceID := rMap["parentResourceId"].(string)
 					var resourceConfigStruct sdk.ResourceConfigurationStruct
 					resourceConfigStruct.Configuration = data
-					// resourceConfigStruct.ComponentName = componentName
 					resourceConfigStruct.Name = name
 					resourceConfigStruct.DateCreated = dateCreated
 					resourceConfigStruct.LastUpdated = lastUpdated
@@ -202,7 +199,13 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 					resourceConfigStruct.RequestState = requestState
 					resourceConfigStruct.ParentResourceID = parentResourceID
 					if resourceType == sdk.InfrastructureVirtual {
+						componentName := data["Component"].(string)
+						resourceConfigStruct.ComponentName = componentName
 						resourceConfigStruct.IPAddress = data["ip_address"].(string)
+
+						// the cluster value is calculated from the map based on the component name as the
+						// resourceViews API does not return that information
+						clusterCountMap[componentName] = clusterCountMap[componentName] + 1
 					}
 
 					if rMap["description"] != nil {
@@ -211,9 +214,6 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 					if rMap["status"] != nil {
 						resourceConfigStruct.Status = rMap["status"].(string)
 					}
-					// the cluster value is calculated from the map based on the component name as the
-					// resourceViews API does not return that information
-					// clusterCountMap[componentName] = clusterCountMap[componentName] + 1
 
 					resourceConfigList = append(resourceConfigList, resourceConfigStruct)
 				}
