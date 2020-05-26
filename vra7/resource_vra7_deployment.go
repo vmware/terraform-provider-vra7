@@ -175,7 +175,9 @@ func resourceVra7DeploymentCreate(d *schema.ResourceData, meta interface{}) erro
 	if p.BusinessGroupID != "" {
 		requestTemplate.BusinessGroupID = p.BusinessGroupID
 	}
-	requestTemplate.Data["_leaseDays"] = p.Lease
+	if p.Lease != 0 {
+		requestTemplate.Data["_leaseDays"] = p.Lease
+	}
 	for field, value := range p.DeploymentConfiguration {
 		requestTemplate.Data[field] = utils.UnmarshalJSONStringIfNecessary(field, value)
 	}
