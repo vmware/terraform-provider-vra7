@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-vra7/sdk"
-	"github.com/terraform-providers/terraform-provider-vra7/utils"
+	"github.com/vmware/terraform-provider-vra7/sdk"
+	"github.com/vmware/terraform-provider-vra7/utils"
 )
 
 func resourceConfigurationSchema(computed bool) *schema.Schema {

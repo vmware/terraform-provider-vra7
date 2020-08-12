@@ -79,6 +79,6 @@ For more information how how to submit bug reports, feature requests, or
 details on how to make your own contributions to the provider, see the vRA7
 provider [project page][tf-vra7-project-page].
 
-[tf-vra7-project-page]: https://github.com/terraform-providers/terraform-provider-vra7
+[tf-vra7-project-page]: https://github.com/vmware/terraform-provider-vra7
 
 

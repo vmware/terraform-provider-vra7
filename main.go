@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-vra7/utils"
-	"github.com/terraform-providers/terraform-provider-vra7/vra7"
+	"github.com/vmware/terraform-provider-vra7/utils"
+	"github.com/vmware/terraform-provider-vra7/vra7"
 )
 
 func main() {

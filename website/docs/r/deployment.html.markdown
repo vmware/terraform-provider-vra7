@@ -14,7 +14,7 @@ Provides a VMware vRA7 deployment resource. This can be used to deploy vRA7 cata
 
 **Simple deployment of a vSphere machine with custom properties and a network profile:**
 
-You can refer to the sample blueprint ([here](https://github.com/terraform-providers/terraform-provider-vra7/tree/master/website/docs/r)) to understand how it is translated to following the terraform config
+You can refer to the sample blueprint ([here](https://github.com/vmware/terraform-provider-vra7/tree/master/website/docs/r)) to understand how it is translated to following the terraform config
 
 ```hcl
 resource "vra7_deployment" "this" {

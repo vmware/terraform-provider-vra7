@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-vra7/sdk"
+	"github.com/vmware/terraform-provider-vra7/sdk"
 )
 
 func dataSourceVra7Deployment() *schema.Resource {

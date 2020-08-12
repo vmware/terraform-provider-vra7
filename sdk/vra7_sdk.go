@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/terraform-providers/terraform-provider-vra7/utils"
+	"github.com/vmware/terraform-provider-vra7/utils"
 )
 
 // API constants

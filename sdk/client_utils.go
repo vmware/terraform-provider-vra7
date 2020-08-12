@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	logging "github.com/op/go-logging"
-	"github.com/terraform-providers/terraform-provider-vra7/utils"
+	"github.com/vmware/terraform-provider-vra7/utils"
 )
 
 var (
