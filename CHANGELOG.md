@@ -2,31 +2,31 @@
 ## 1.0.1 (April 21, 2020)
 
 BUG FIXES:
-* Terraform crash : rpc error: code = Unavailable desc = transport is closing ([#59](https://github.com/terraform-providers/terraform-provider-vra7/issues/59))
-* Provider 1.0.0 - Required to specify all values even if there's a default specified in the blueprint ([#60](https://github.com/terraform-providers/terraform-provider-vra7/issues/60))
+* Terraform crash : rpc error: code = Unavailable desc = transport is closing ([#59](https://github.com/vmware/terraform-provider-vra7/issues/59))
+* Provider 1.0.0 - Required to specify all values even if there's a default specified in the blueprint ([#60](https://github.com/vmware/terraform-provider-vra7/issues/60))
 
 ## 1.0.0 (April 08, 2020)
 
 BUG FIXES:
-* Terraform gets only first VM with _number_of_instances or _cluster > 1  ([#39](https://github.com/terraform-providers/terraform-provider-vra7/issues/39))
-* Terraform refresh does not work as intended ([#38](https://github.com/terraform-providers/terraform-provider-vra7/issues/38))
-* VRA Provider deletes resources from state file before receiving any "SUCCESSFUL" status response from VRA during terraform destroy ([#33](https://github.com/terraform-providers/terraform-provider-vra7/issues/33))
-* Terraform apply returns empty ip address ([#27](https://github.com/terraform-providers/terraform-provider-vra7/issues/27))
-* IPAddress return is empty with latest release of vRealize Automation ([#16](https://github.com/terraform-providers/terraform-provider-vra7/issues/16))
-* Terraform adds resource in state file even though the request_status is "FAILED" ([#37](https://github.com/terraform-providers/terraform-provider-vra7/issues/37))
+* Terraform gets only first VM with _number_of_instances or _cluster > 1  ([#39](https://github.com/vmware/terraform-provider-vra7/issues/39))
+* Terraform refresh does not work as intended ([#38](https://github.com/vmware/terraform-provider-vra7/issues/38))
+* VRA Provider deletes resources from state file before receiving any "SUCCESSFUL" status response from VRA during terraform destroy ([#33](https://github.com/vmware/terraform-provider-vra7/issues/33))
+* Terraform apply returns empty ip address ([#27](https://github.com/vmware/terraform-provider-vra7/issues/27))
+* IPAddress return is empty with latest release of vRealize Automation ([#16](https://github.com/vmware/terraform-provider-vra7/issues/16))
+* Terraform adds resource in state file even though the request_status is "FAILED" ([#37](https://github.com/vmware/terraform-provider-vra7/issues/37))
 
 FEATURES:
 * The resource schema is modified to have more attributes for the vra7_deployment resource
-* Feature request: Day 2: Change the number of VMs created by the vRA blueprint ([#47](https://github.com/terraform-providers/terraform-provider-vra7/issues/47))
-* Does 'import' work? ([#29](https://github.com/terraform-providers/terraform-provider-vra7/issues/29))
-* Need to import existing VMs ([#43](https://github.com/terraform-providers/terraform-provider-vra7/issues/43))
-* Support Deployment Day 2 Change Lease action ([#54](https://github.com/terraform-providers/terraform-provider-vra7/issues/54))
-* Create a data source for vra7_deployment resource ([#55](https://github.com/terraform-providers/terraform-provider-vra7/issues/55))
+* Feature request: Day 2: Change the number of VMs created by the vRA blueprint ([#47](https://github.com/vmware/terraform-provider-vra7/issues/47))
+* Does 'import' work? ([#29](https://github.com/vmware/terraform-provider-vra7/issues/29))
+* Need to import existing VMs ([#43](https://github.com/vmware/terraform-provider-vra7/issues/43))
+* Support Deployment Day 2 Change Lease action ([#54](https://github.com/vmware/terraform-provider-vra7/issues/54))
+* Create a data source for vra7_deployment resource ([#55](https://github.com/vmware/terraform-provider-vra7/issues/55))
 
 IMPROVEMENTS:
 * Cleanup README
-* Show all the data in the state file that is returned from a deployment resource GET ([#41](https://github.com/terraform-providers/terraform-provider-vra7/issues/41))
-* Cannot pass array of values in element of deployment_configuration or resource_configuration ([#45](https://github.com/terraform-providers/terraform-provider-vra7/issues/45))
+* Show all the data in the state file that is returned from a deployment resource GET ([#41](https://github.com/vmware/terraform-provider-vra7/issues/41))
+* Cannot pass array of values in element of deployment_configuration or resource_configuration ([#45](https://github.com/vmware/terraform-provider-vra7/issues/45))
 * `ip_address` can be accessed from the resource_configuration schema as a first class attribute
 
 
@@ -48,7 +48,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* Upgrade terraform SDK code to v0.12.6 ([#26](https://github.com/terraform-providers/terraform-provider-vra7/pull/26))
+* Upgrade terraform SDK code to v0.12.6 ([#26](https://github.com/vmware/terraform-provider-vra7/pull/26))
 
 BUG FIXES:
 
@@ -58,17 +58,17 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* Updates for terraform 0.12.0. Thanks @skylerto! ([#17](https://github.com/terraform-providers/terraform-provider-vra7/pull/17))
-* Changes to make acceptance tests run with v0.12 changes ([#18](https://github.com/terraform-providers/terraform-provider-vra7/pull/18))
-* Updates to examples to match return types ([#21](https://github.com/terraform-providers/terraform-provider-vra7/pull/21))
+* Updates for terraform 0.12.0. Thanks @skylerto! ([#17](https://github.com/vmware/terraform-provider-vra7/pull/17))
+* Changes to make acceptance tests run with v0.12 changes ([#18](https://github.com/vmware/terraform-provider-vra7/pull/18))
+* Updates to examples to match return types ([#21](https://github.com/vmware/terraform-provider-vra7/pull/21))
 
 BUG FIXES:
 
 * Cleanup README
-* Fix travis tests and changes to pass linting ([#10](https://github.com/terraform-providers/terraform-provider-vra7/pull/10))
-* Formatting example code and removing debugging comment ([#11](https://github.com/terraform-providers/terraform-provider-vra7/pull/11))
-* Update failure was returning wrong status in the console. ([#22](https://github.com/terraform-providers/terraform-provider-vra7/pull/22))
-* The provider should wait for the terminal state or timeout ([#24](https://github.com/terraform-providers/terraform-provider-vra7/pull/24))
+* Fix travis tests and changes to pass linting ([#10](https://github.com/vmware/terraform-provider-vra7/pull/10))
+* Formatting example code and removing debugging comment ([#11](https://github.com/vmware/terraform-provider-vra7/pull/11))
+* Update failure was returning wrong status in the console. ([#22](https://github.com/vmware/terraform-provider-vra7/pull/22))
+* The provider should wait for the terminal state or timeout ([#24](https://github.com/vmware/terraform-provider-vra7/pull/24))
 
 
 ## 0.2.0 (May 07, 2019)

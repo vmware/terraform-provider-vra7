@@ -1,4 +1,4 @@
-module github.com/terraform-providers/terraform-provider-vra7
+module github.com/vmware/terraform-provider-vra7
 
 require (
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect

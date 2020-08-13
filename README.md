@@ -205,7 +205,7 @@ Refer to the documentation [here](website/docs/d/vra7_deployment.html.markdown)
 Building the provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-vra7`
+Clone repository to: `$GOPATH/src/github.com/vmware/terraform-provider-vra7`
 
 ```sh
 $ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
@@ -215,7 +215,7 @@ $ git clone git@github.com:terraform-providers/terraform-provider-vra7
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-vra7
+$ cd $GOPATH/src/github.com/vmware/terraform-provider-vra7
 $ make build
 ```
 

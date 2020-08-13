@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-vra7/sdk"
+	"github.com/vmware/terraform-provider-vra7/sdk"
 )
 
 //Provider - This function initializes the provider schema
