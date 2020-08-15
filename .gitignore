@@ -30,3 +30,4 @@ tmp
 terraform-provider-vra7*
 test.sh
 terraform-provider-vra.exe
+dist/
