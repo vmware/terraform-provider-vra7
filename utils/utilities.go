@@ -110,7 +110,7 @@ func ReplaceValueInRequestTemplate(templateInterface map[string]interface{}, fie
 		//If value type is map then set recursive call which will fiend field in one level down of map interface
 		if reflect.ValueOf(val).Kind() == reflect.Map {
 			replaced = ReplaceValueInRequestTemplate(val.(map[string]interface{}), field, value)
-			if replaced == true {
+			if replaced {
 				return true
 			}
 		} else if key == field && val != value {
@@ -134,7 +134,7 @@ func AddValueToRequestTemplate(templateInterface map[string]interface{}, field s
 	for k, v := range templateInterface {
 		if reflect.ValueOf(v).Kind() == reflect.Map && k == "data" {
 			template, _ := v.(map[string]interface{})
-			v = AddValueToRequestTemplate(template, field, value)
+			_ = AddValueToRequestTemplate(template, field, value)
 		} else { //if i == "data" {
 			templateInterface[field] = UnmarshalJSONStringIfNecessary(field, value)
 		}

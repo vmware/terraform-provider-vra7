@@ -75,7 +75,7 @@ func (e APIError) Error() string {
 }
 
 // GetAPIError reads an error out of the HTTP response, or does nothing if
-// no error occured.
+// no error occurred.
 func GetAPIError(respBody []byte, statusCode int) error {
 	apiError := APIError{}
 	e := Error{}

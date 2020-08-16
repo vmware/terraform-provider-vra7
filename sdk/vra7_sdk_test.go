@@ -42,7 +42,7 @@ func TestGetCatalogItemRequestTemplate(t *testing.T) {
 	utils.AssertNotNil(t, catalogItemReqTemplate)
 	utils.AssertEqualsString(t, catalogItemID, catalogItemReqTemplate.CatalogItemID)
 
-	catalogItemReqTemplate, err = client.GetCatalogItemRequestTemplate("635e5v-8e37efd60-hdgdh")
+	_, err = client.GetCatalogItemRequestTemplate("635e5v-8e37efd60-hdgdh")
 	utils.AssertNotNilError(t, err)
 
 	httpmock.Reset()
@@ -90,7 +90,7 @@ func TestReadCatalogItemByName(t *testing.T) {
 	utils.AssertEqualsString(t, "feaedf73-560c-4612-a573-41667e017691", catalogItemID)
 	utils.AssertNilError(t, err)
 
-	catalogItemID, err = client.ReadCatalogItemByName("Invalid Catalog Item name")
+	catalogItemID, _ = client.ReadCatalogItemByName("Invalid Catalog Item name")
 	utils.AssertEqualsString(t, "", catalogItemID)
 }
 
