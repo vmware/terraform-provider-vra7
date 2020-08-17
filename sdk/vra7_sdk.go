@@ -266,7 +266,10 @@ func (c *APIClient) GetResourceActions(resourceID string) ([]Operation, error) {
 	var resourceActions []Operation
 	for _, item := range reqResponse.Content {
 		action := &Operation{}
-		mapstructure.Decode(item, &action)
+		err := mapstructure.Decode(item, &action)
+		if err != nil {
+			return nil, err
+		}
 		resourceActions = append(resourceActions, *action)
 	}
 	return resourceActions, nil
@@ -303,7 +306,7 @@ func (c *APIClient) PostResourceAction(resourceID, actionID string, resourceActi
 
 	requestURL := resp.Location
 	i := strings.LastIndex(requestURL, "/")
-	requestID := requestURL[i+1 : len(requestURL)]
+	requestID := requestURL[i+1:]
 
 	return requestID, nil
 }

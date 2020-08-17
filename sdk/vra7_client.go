@@ -41,7 +41,10 @@ func (c *APIClient) DoRequest(req *APIRequest, login bool) (*APIResponse, error)
 		return nil, err
 	}
 	if !login {
-		c.Authenticate()
+		err = c.Authenticate()
+		if err != nil {
+			return nil, err
+		}
 		r.Header.Add(AuthorizationHeader, c.BearerToken)
 	}
 	r.Header.Add(ConnectionHeader, CloseConnection)
@@ -50,7 +53,7 @@ func (c *APIClient) DoRequest(req *APIRequest, login bool) (*APIResponse, error)
 		log.Error("An error occurred when calling %v on %v. Error: %v", req.Method, req.URL, err)
 		return nil, err
 	}
-	log.Info("Check the status of the request %s \n The response is: %s", req.URL, string(resp.Status))
+	log.Info("Check the status of the request %s \n The response is: %s", req.URL, resp.Status)
 	return FromHTTPRespToAPIResp(resp)
 }
 
