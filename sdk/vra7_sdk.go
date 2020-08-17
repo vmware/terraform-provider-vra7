@@ -191,6 +191,20 @@ func (c *APIClient) GetRequestResourceView(catalogRequestID string) (*RequestRes
 	return &response, nil
 }
 
+// GetChildResources retrieves the resources that were provisioned as a result of a given request.
+func (c *APIClient) GetChildResources(link string) (*RequestResourceView, error) {
+	resp, respErr := c.Get(link, nil)
+	if respErr != nil {
+		return nil, respErr
+	}
+	var response RequestResourceView
+	unmarshallErr := utils.UnmarshalJSON(resp.Body, &response)
+	if unmarshallErr != nil {
+		return nil, unmarshallErr
+	}
+	return &response, nil
+}
+
 // RequestCatalogItem - Make a catalog request.
 func (c *APIClient) RequestCatalogItem(requestTemplate *CatalogItemRequestTemplate) (*CatalogRequest, error) {
 	//Form a path to set a REST call to create a machine

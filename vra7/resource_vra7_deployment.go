@@ -414,37 +414,11 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 		resourceID := rMap["resourceId"].(string)
 		requestID := rMap["requestId"].(string)
 		requestState := rMap["requestState"].(string)
+		hasChildren := rMap["hasChildren"].(bool)
 
-		// if the resource type is VMs, update the resource_configuration attribute
-		if resourceType == sdk.InfrastructureVirtual {
-			data := rMap["data"].(map[string]interface{})
-			componentName := data["Component"].(string)
-			parentResourceID := rMap["parentResourceId"].(string)
-			var resourceConfigStruct sdk.ResourceConfigurationStruct
-			resourceConfigStruct.Configuration = data
-			resourceConfigStruct.ComponentName = componentName
-			resourceConfigStruct.Name = name
-			resourceConfigStruct.DateCreated = dateCreated
-			resourceConfigStruct.LastUpdated = lastUpdated
-			resourceConfigStruct.ResourceID = resourceID
-			resourceConfigStruct.ResourceType = resourceType
-			resourceConfigStruct.RequestID = requestID
-			resourceConfigStruct.RequestState = requestState
-			resourceConfigStruct.ParentResourceID = parentResourceID
-			resourceConfigStruct.IPAddress = data["ip_address"].(string)
-
-			if rMap["description"] != nil {
-				resourceConfigStruct.Description = rMap["description"].(string)
-			}
-			if rMap["status"] != nil {
-				resourceConfigStruct.Status = rMap["status"].(string)
-			}
-			// the cluster value is calculated from the map based on the component name as the
-			// resourceViews API does not return that information
-			clusterCountMap[componentName] = clusterCountMap[componentName] + 1
-			resourceConfigList = append(resourceConfigList, resourceConfigStruct)
-
-		} else if resourceType == sdk.DeploymentResourceType {
+		// only read the Deployment from the first content response,
+		// get VMs and other components as Child Resources from the Deployment
+		if resourceType == sdk.DeploymentResourceType {
 
 			leaseMap := rMap["lease"].(map[string]interface{})
 			leaseStart := leaseMap["start"].(string)
@@ -472,6 +446,67 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("owners", rMap["owners"].([]interface{}))
 			d.Set("name", name)
 			d.Set("businessgroup_id", rMap["businessGroupId"].(string))
+
+			if hasChildren {
+				links := rMap["links"].([]interface{})
+				var childResourcesLink string
+
+				for _, link := range links {
+					l := link.(map[string]interface{})
+					if l["rel"].(string) == "GET: Child Resources" {
+						childResourcesLink = l["href"].(string)
+					}
+				}
+				requestResourceView, errTemplate := vraClient.GetChildResources(childResourcesLink)
+				if requestResourceView != nil && len(requestResourceView.Content) == 0 {
+					//If resource does not exists then unset the resource ID from state file
+					d.SetId("")
+					return fmt.Errorf("The resource cannot be found")
+				}
+				if errTemplate != nil || len(requestResourceView.Content) == 0 {
+					return fmt.Errorf("Resource view failed to load with the error %v", errTemplate)
+				}
+
+				for _, resource := range requestResourceView.Content {
+					rMap := resource.(map[string]interface{})
+					resourceType := rMap["resourceType"].(string)
+					name := rMap["name"].(string)
+					dateCreated := rMap["dateCreated"].(string)
+					lastUpdated := rMap["lastUpdated"].(string)
+					resourceID := rMap["resourceId"].(string)
+					data := rMap["data"].(map[string]interface{})
+					parentResourceID := rMap["parentResourceId"].(string)
+					var resourceConfigStruct sdk.ResourceConfigurationStruct
+					resourceConfigStruct.Configuration = data
+					resourceConfigStruct.Name = name
+					resourceConfigStruct.DateCreated = dateCreated
+					resourceConfigStruct.LastUpdated = lastUpdated
+					resourceConfigStruct.ResourceID = resourceID
+					resourceConfigStruct.ResourceType = resourceType
+					resourceConfigStruct.RequestID = requestID
+					resourceConfigStruct.RequestState = requestState
+					resourceConfigStruct.ParentResourceID = parentResourceID
+					if resourceType == sdk.InfrastructureVirtual {
+						componentName := data["Component"].(string)
+						resourceConfigStruct.ComponentName = componentName
+						resourceConfigStruct.IPAddress = data["ip_address"].(string)
+
+						// the cluster value is calculated from the map based on the component name as the
+						// resourceViews API does not return that information
+						clusterCountMap[componentName] = clusterCountMap[componentName] + 1
+					}
+
+					if rMap["description"] != nil {
+						resourceConfigStruct.Description = rMap["description"].(string)
+					}
+					if rMap["status"] != nil {
+						resourceConfigStruct.Status = rMap["status"].(string)
+					}
+					resourceConfigList = append(resourceConfigList, resourceConfigStruct)
+				}
+
+			}
+
 			if rMap["description"] != nil {
 				d.Set("description", rMap["description"].(string))
 			}
