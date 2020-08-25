@@ -46,7 +46,7 @@ func dataSourceVra7Deployment() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"resource_configuration": resourceConfigurationSchema(true),
+			"resource_configuration": resourceConfigurationSchema(false),
 			"lease_days": {
 				Type:     schema.TypeInt,
 				Computed: true,

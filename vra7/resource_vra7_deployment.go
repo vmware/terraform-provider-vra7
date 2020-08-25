@@ -91,7 +91,7 @@ func resourceVra7Deployment() *schema.Resource {
 				Optional: true,
 				Default:  true,
 			},
-			"resource_configuration": resourceConfigurationSchema(false),
+			"resource_configuration": resourceConfigurationSchema(true),
 			"lease_days": {
 				Type:     schema.TypeInt,
 				Computed: true,

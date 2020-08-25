@@ -9,21 +9,21 @@ import (
 	"github.com/vmware/terraform-provider-vra7/utils"
 )
 
-func resourceConfigurationSchema(computed bool) *schema.Schema {
+func resourceConfigurationSchema(optional bool) *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
-		Optional: !computed,
-		Computed: computed,
+		Optional: optional,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"component_name": {
 					Type:     schema.TypeString,
-					Required: !computed,
-					Computed: computed,
+					Optional: optional,
+					Computed: true,
 				},
 				"configuration": {
 					Type:     schema.TypeMap,
-					Optional: true,
+					Optional: optional,
 					Computed: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
@@ -31,7 +31,7 @@ func resourceConfigurationSchema(computed bool) *schema.Schema {
 				},
 				"cluster": {
 					Type:     schema.TypeInt,
-					Optional: true,
+					Optional: optional,
 					Computed: true,
 				},
 				"resource_id": {
