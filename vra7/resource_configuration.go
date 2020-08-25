@@ -13,7 +13,7 @@ func resourceConfigurationSchema(computed bool) *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: !computed,
-		Computed: computed,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"component_name": {
