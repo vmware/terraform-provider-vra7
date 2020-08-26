@@ -64,7 +64,7 @@ The following arguments for resource_configuration block are supported:
 #### Attribute Reference
 
 * `component_name` - The name of the component/machine resource as in the blueprint/catalog_item
-* `configuration` - The machine resource level properties like cpu, memory, storage, custom properties, etc. can be added here. When fetching the state of the machine, this will be populated with a lot of information in the state file.
+* `resource_state` - The detailed state/view of the machine resources within the deployment
 * `cluster` - Cluster size for this machine resource
 * `resource_id` - ID of the machine resource
 * `name` - Name of the resource

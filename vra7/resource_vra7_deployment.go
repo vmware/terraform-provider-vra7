@@ -183,10 +183,14 @@ func resourceVra7DeploymentCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	for _, rConfig := range p.ResourceConfiguration {
-		if rConfig.Cluster != 0 {
-			rConfig.Configuration["_cluster"] = rConfig.Cluster
+		tempConfigMap := make(map[string]interface{})
+		for index, element := range rConfig.Configuration {
+			tempConfigMap[index] = element
 		}
-		for propertyName, propertyValue := range rConfig.Configuration {
+		if rConfig.Cluster != 0 {
+			tempConfigMap["_cluster"] = rConfig.Cluster
+		}
+		for propertyName, propertyValue := range tempConfigMap {
 			requestTemplate.Data[rConfig.ComponentName] = updateRequestTemplate(
 				requestTemplate.Data[rConfig.ComponentName].(map[string]interface{}),
 				propertyName,
@@ -212,10 +216,10 @@ func resourceVra7DeploymentCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func updateRequestTemplate(templateInterface map[string]interface{}, field string, value interface{}) map[string]interface{} {
-	replaced := utils.ReplaceValueInRequestTemplate(templateInterface, field, value)
+	replaced := ReplaceValueInRequestTemplate(templateInterface, field, value)
 
 	if !replaced {
-		templateInterface["data"] = utils.AddValueToRequestTemplate(templateInterface["data"].(map[string]interface{}), field, value)
+		templateInterface["data"] = AddValueToRequestTemplate(templateInterface["data"].(map[string]interface{}), field, value)
 	}
 	return templateInterface
 }
@@ -250,7 +254,7 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 			newLeaseEnd := currTime.Add(time.Hour * 24 * time.Duration(int64(p.Lease))) // format 2020-04-06 00:15:44 -0700 PDT
 			extendLeaseTo := ConvertToISO8601(newLeaseEnd)
 			log.Info("Starting Change Lease action on the deployment with id %v. The lease will be extended by %v days.", p.DeploymentID, p.Lease)
-			_ = utils.ReplaceValueInRequestTemplate(
+			_ = ReplaceValueInRequestTemplate(
 				resourceActionTemplate.Data, "provider-ExpirationDate", extendLeaseTo)
 			requestID, err := vraClient.PostResourceAction(p.DeploymentID, changeLeaseActionID, resourceActionTemplate)
 			if err != nil {
@@ -289,9 +293,9 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 						// get the map from the action template corresponding to the key which is the component name
 						actionTemplateDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, newResourceConfig.ComponentName)
 						// update the template with the new cluster size
-						log.Info("Starting Scale In action on the deployment with id %v for the component %v. The cluster size will be reduced from %v to %v.",
+						log.Info("Starting Scale Out action on the deployment with id %v for the component %v. The cluster size will be increased from %v to %v.",
 							p.DeploymentID, oldResourceConfig.ComponentName, oldResourceConfig.Cluster, newResourceConfig.Cluster)
-						_ = utils.ReplaceValueInRequestTemplate(
+						_ = ReplaceValueInRequestTemplate(
 							actionTemplateDataMap, "_cluster", newResourceConfig.Cluster)
 						requestID, err := vraClient.PostResourceAction(p.DeploymentID, scaleOutActionID, resourceActionTemplate)
 						if err != nil {
@@ -304,7 +308,7 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 							log.Errorf("The scale out request failed with error: %v ", err)
 							return err
 						}
-						log.Info("Successfully completed the Scale In action for the deployment with id %v.", p.DeploymentID)
+						log.Info("Successfully completed the Scale Out action for the deployment with id %v.", p.DeploymentID)
 					} else if oldResourceConfig.Cluster > newResourceConfig.Cluster && deploymentActionsMap[sdk.ScaleIn] != "" {
 						// Scale In Day 2 operation
 						scaleInActionID := deploymentActionsMap[sdk.ScaleIn]
@@ -316,9 +320,9 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 						// get the map from the action template corresponding to the key which is the component name
 						actionTemplateDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, newResourceConfig.ComponentName)
 						// update the template with the new cluster size
-						log.Info("Starting Scale Out action on the deployment with id %v for the component %v. The cluster size will be increased from %v to %v.",
+						log.Info("Starting Scale In action on the deployment with id %v for the component %v. The cluster size will be decresed from %v to %v.",
 							p.DeploymentID, oldResourceConfig.ComponentName, oldResourceConfig.Cluster, newResourceConfig.Cluster)
-						_ = utils.ReplaceValueInRequestTemplate(
+						_ = ReplaceValueInRequestTemplate(
 							actionTemplateDataMap, "_cluster", newResourceConfig.Cluster)
 						requestID, err := vraClient.PostResourceAction(p.DeploymentID, scaleInActionID, resourceActionTemplate)
 						if err != nil {
@@ -331,7 +335,7 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 							log.Errorf("The scale in request failed with error: %v ", err)
 							return err
 						}
-						log.Info("Successfully completed the Scale Out action for the deployment with id %v.", p.DeploymentID)
+						log.Info("Successfully completed the Scale In action for the deployment with id %v.", p.DeploymentID)
 					}
 				}
 			}
@@ -345,6 +349,7 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 		for _, resource := range resources.Content {
 			oldResourceConfig := GetResourceByID(oldResourceConfigList, resource.ID)
 			if oldResourceConfig.ComponentName != "" {
+
 				vmResourceActions, _ := vraClient.GetResourceActions(oldResourceConfig.ResourceID)
 				vmResourceActionsMap := GetActionNameIDMap(vmResourceActions)
 				if vmResourceActionsMap[sdk.Reconfigure] != "" {
@@ -355,7 +360,7 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 					actionTemplateDataMap := resourceActionTemplate.Data
 					for propertyName, propertyValue := range newResourceConfig.Configuration {
 						if oldResourceConfig.Configuration[propertyName] != propertyValue {
-							_ = utils.ReplaceValueInRequestTemplate(
+							_ = ReplaceValueInRequestTemplate(
 								actionTemplateDataMap, propertyName, propertyValue)
 							if !configChanged {
 								configChanged = true
@@ -369,7 +374,7 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 							log.Errorf("The reconfigure request failed with error: %v ", err)
 							return err
 						}
-						log.Info("The Scale In operation for the component %v has been submitted", oldResourceConfig.ComponentName)
+						log.Info("The Reconfigure operation for the component %v has been submitted", oldResourceConfig.ComponentName)
 						_, err = waitForRequestCompletion(d, meta, requestID)
 						if err != nil {
 							log.Errorf("The reconfigure request for component %v failed with error: %v ", oldResourceConfig.ComponentName, err)
@@ -390,6 +395,11 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error {
 	log.Info("Reading the resource vra7_deployment with request id %s ", d.Id())
 	vraClient := meta.(*sdk.APIClient)
+
+	p, err := readProviderConfiguration(d, vraClient)
+	if err != nil {
+		return err
+	}
 
 	// Get the ID of the catalog request that was used to provision this Deployment. This id
 	// will remain the same for this deployment across any actions on the machines like reconfigure, etc.
@@ -423,7 +433,7 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			componentName := data["Component"].(string)
 			parentResourceID := rMap["parentResourceId"].(string)
 			var resourceConfigStruct sdk.ResourceConfigurationStruct
-			resourceConfigStruct.Configuration = data
+			resourceConfigStruct.ResourceState = data
 			resourceConfigStruct.ComponentName = componentName
 			resourceConfigStruct.Name = name
 			resourceConfigStruct.DateCreated = dateCreated
@@ -434,6 +444,10 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			resourceConfigStruct.RequestState = requestState
 			resourceConfigStruct.ParentResourceID = parentResourceID
 			resourceConfigStruct.IPAddress = data["ip_address"].(string)
+
+			if p != nil && p.ResourceConfiguration != nil {
+				resourceConfigStruct.Configuration = GetConfiguration(componentName, p.ResourceConfiguration)
+			}
 
 			if rMap["description"] != nil {
 				resourceConfigStruct.Description = rMap["description"].(string)

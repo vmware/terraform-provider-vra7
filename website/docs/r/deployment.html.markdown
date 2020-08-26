@@ -102,6 +102,7 @@ NOTE: To add an array property, refer to the security_tag value in example above
 * `resource_id` - ID of the machine resource
 * `name` - Name of the resource
 * `description` - Description of the resource
+* `resource_state` - The detailed state/view of the machine resources within the deployment
 * `parent_resource_id` - ID of the deployment of which this machine is a part of
 * `ip_address` - IP address of the machine
 * `request_id` - ID of the catalog item request
