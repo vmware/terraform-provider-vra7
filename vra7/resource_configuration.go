@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/vmware/terraform-provider-vra7/sdk"
-	"github.com/vmware/terraform-provider-vra7/utils"
 )
 
 func resourceConfigurationSchema(optional bool) *schema.Schema {
@@ -24,6 +23,13 @@ func resourceConfigurationSchema(optional bool) *schema.Schema {
 				"configuration": {
 					Type:     schema.TypeMap,
 					Optional: optional,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"resource_state": {
+					Type:     schema.TypeMap,
 					Computed: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
@@ -92,6 +98,7 @@ func expandResourceConfiguration(rConfigurations []interface{}) []sdk.ResourceCo
 		rConfig := sdk.ResourceConfigurationStruct{
 			ComponentName:    configMap["component_name"].(string),
 			Configuration:    configMap["configuration"].(map[string]interface{}),
+			ResourceState:    configMap["resource_state"].(map[string]interface{}),
 			Cluster:          configMap["cluster"].(int),
 			Name:             configMap["name"].(string),
 			Description:      configMap["description"].(string),
@@ -109,15 +116,16 @@ func expandResourceConfiguration(rConfigurations []interface{}) []sdk.ResourceCo
 	return configs
 }
 
-func flattenResourceConfigurations(configs []sdk.ResourceConfigurationStruct, clusterCountMap map[string]int) []map[string]interface{} {
-	if len(configs) == 0 {
+func flattenResourceConfigurations(resourceConfigList []sdk.ResourceConfigurationStruct, clusterCountMap map[string]int) []map[string]interface{} {
+	if len(resourceConfigList) == 0 {
 		return make([]map[string]interface{}, 0)
 	}
-	rConfigs := make([]map[string]interface{}, 0, len(configs))
-	for _, config := range configs {
-		resourceDataMap := parseDataMap(config.Configuration)
+	rConfigs := make([]map[string]interface{}, 0, len(resourceConfigList))
+	for _, config := range resourceConfigList {
+		stateMap, configurationMap := parseDataMap(config.ResourceState, config.Configuration)
 		helper := make(map[string]interface{})
-		helper["configuration"] = resourceDataMap
+		helper["resource_state"] = stateMap
+		helper["configuration"] = configurationMap
 		helper["component_name"] = config.ComponentName
 		helper["name"] = config.Name
 		helper["date_created"] = config.DateCreated
@@ -135,9 +143,9 @@ func flattenResourceConfigurations(configs []sdk.ResourceConfigurationStruct, cl
 	return rConfigs
 }
 
-func parseDataMap(resourceData map[string]interface{}) map[string]interface{} {
-	m := make(map[string]interface{})
-	resourcePropertyMapper := utils.ResourceMapper()
+func parseDataMap(resourceData map[string]interface{}, configurationMap map[string]interface{}) (map[string]interface{}, map[string]interface{}) {
+	stateMap := make(map[string]interface{})
+	resourcePropertyMapper := ResourceMapper()
 	for key, value := range resourceData {
 
 		if i, ok := resourcePropertyMapper[key]; ok {
@@ -146,33 +154,39 @@ func parseDataMap(resourceData map[string]interface{}) map[string]interface{} {
 		v := reflect.ValueOf(value)
 		switch v.Kind() {
 		case reflect.Slice:
-			parseArray(key, m, value.([]interface{}))
+			parseArray(key, stateMap, configurationMap, value.([]interface{}))
 		case reflect.Map:
-			parseMap(key, m, value.(map[string]interface{}))
+			parseMap(key, stateMap, configurationMap, value.(map[string]interface{}))
 		default:
-			m[key] = convToString(value)
+			stateMap[key] = convToString(value)
+			if _, ok := configurationMap[key]; ok {
+				configurationMap[key] = convToString(value)
+			}
 		}
 	}
-	return m
+	return stateMap, configurationMap
 }
 
-func parseMap(prefix string, m map[string]interface{}, data map[string]interface{}) {
+func parseMap(prefix string, stateMap map[string]interface{}, configurationMap map[string]interface{}, data map[string]interface{}) {
 
 	for key, value := range data {
 		v := reflect.ValueOf(value)
 
 		switch v.Kind() {
 		case reflect.Slice:
-			parseArray(prefix+"."+key, m, value.([]interface{}))
+			parseArray(prefix+"."+key, stateMap, configurationMap, value.([]interface{}))
 		case reflect.Map:
-			parseMap(prefix+"."+key, m, value.(map[string]interface{}))
+			parseMap(prefix+"."+key, stateMap, configurationMap, value.(map[string]interface{}))
 		default:
-			m[prefix+"."+key] = convToString(value)
+			stateMap[prefix+"."+key] = convToString(value)
+			if _, ok := configurationMap[prefix+"."+key]; ok {
+				configurationMap[key] = convToString(value)
+			}
 		}
 	}
 }
 
-func parseArray(prefix string, m map[string]interface{}, value []interface{}) {
+func parseArray(prefix string, stateMap map[string]interface{}, configurationMap map[string]interface{}, value []interface{}) {
 
 	for index, val := range value {
 		v := reflect.ValueOf(val)
@@ -196,11 +210,14 @@ func parseArray(prefix string, m map[string]interface{}, value []interface{}) {
 			objMap := val.(map[string]interface{})
 			for k, v := range objMap {
 				if k == "data" {
-					parseMap(prefix+"."+convToString(index), m, v.(map[string]interface{}))
+					parseMap(prefix+"."+convToString(index), stateMap, configurationMap, v.(map[string]interface{}))
 				}
 			}
 		default:
-			m[prefix+"."+convToString(index)] = convToString(val)
+			stateMap[prefix+"."+convToString(index)] = convToString(val)
+			if _, ok := configurationMap[prefix+"."+convToString(index)]; ok {
+				configurationMap[prefix+"."+convToString(index)] = convToString(value)
+			}
 		}
 	}
 }

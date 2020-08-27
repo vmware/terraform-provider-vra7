@@ -133,7 +133,7 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 			componentName := data["Component"].(string)
 			parentResourceID := rMap["parentResourceId"].(string)
 			var resourceConfigStruct sdk.ResourceConfigurationStruct
-			resourceConfigStruct.Configuration = data
+			resourceConfigStruct.ResourceState = data
 			resourceConfigStruct.ComponentName = componentName
 			resourceConfigStruct.Name = name
 			resourceConfigStruct.DateCreated = dateCreated

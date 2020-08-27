@@ -16,6 +16,7 @@ type ResourceConfigurationStruct struct {
 	RequestState     string                 `json:"request_state,omitempty"`
 	ResourceType     string                 `json:"resource_type,omitempty"`
 	Configuration    map[string]interface{} `json:"configuration,omitempty"`
+	ResourceState    map[string]interface{} `json:"resource_state,omitempty"`
 	DateCreated      string                 `json:"last_created,omitempty"`
 	LastUpdated      string                 `json:"last_updated,omitempty"`
 	ParentResourceID string                 `json:"parent_resource_id,omitempty"`
