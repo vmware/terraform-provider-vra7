@@ -97,3 +97,18 @@ func GetConfiguration(componentName string, resourceConfiguration []sdk.Resource
 	}
 	return m
 }
+
+// ConvertToDateTime converts ISO8601 (2020-04-16T00:15:00.700Z) returned from vRA to YYYY-MM-DD HH:MM format
+func ConvertToDateTime(inputFormat string) string {
+	s := strings.Split(inputFormat, "T")
+	return s[0] + " " + s[1][0:5]
+}
+
+// ConvertToISO8601 converts lease_end to the format ISO8601 (2020-04-16T00:15:00.700Z) that vRA 7.x understands
+func ConvertToISO8601(givenTime string) string {
+	s := strings.Split(givenTime, " ")
+	if len(s) == 1 {
+		return s[0] + "T" + "00:00" + ":00.700Z"
+	}
+	return s[0] + "T" + s[1] + ":00.700Z"
+}

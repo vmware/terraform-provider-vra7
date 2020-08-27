@@ -3,6 +3,7 @@ package vra7
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -37,6 +38,7 @@ type ProviderSchema struct {
 	DeploymentConfiguration map[string]interface{}
 	DeploymentDestroy       bool
 	Lease                   int
+	LeaseEnd                string
 	DeploymentID            string
 	ResourceConfiguration   []sdk.ResourceConfigurationStruct
 }
@@ -94,8 +96,24 @@ func resourceVra7Deployment() *schema.Resource {
 			"resource_configuration": resourceConfigurationSchema(true),
 			"lease_days": {
 				Type:     schema.TypeInt,
-				Computed: true,
 				Optional: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return false
+				},
+			},
+			"lease_end": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					value := v.(string)
+					matched, _ := regexp.MatchString(`^([0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]))$|^([0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9])$`, value)
+					if !matched {
+						errors = append(errors, fmt.Errorf(
+							"%q must be of the format YYYY-MM-DD HH:MM or YYYY-MM-DD. Time HH:MM is accepted in 24 hour clock format", k))
+					}
+					return
+				},
 			},
 			"wait_timeout": {
 				Type:     schema.TypeInt,
@@ -111,10 +129,6 @@ func resourceVra7Deployment() *schema.Resource {
 				Computed: true,
 			},
 			"lease_start": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"lease_end": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -243,19 +257,20 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 		return validityErr
 	}
 
-	//Change Lease Day 2 operation
 	if d.HasChange("lease_days") {
+		return fmt.Errorf("to update the lease, update the lease_end property. lease_days is only used to set lease when the deployment is created for the first time")
+	}
+
+	//Change Lease Day 2 operation
+	if d.HasChange("lease_end") {
 		deploymentResourceActions, _ := vraClient.GetResourceActions(p.DeploymentID)
 		deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
 		changeLeaseActionID := deploymentActionsMap["Change Lease"]
 		if changeLeaseActionID != "" {
 			resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(p.DeploymentID, changeLeaseActionID)
-			currTime, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))    // format 2020-04-06 00:15:44 -0700 PDT
-			newLeaseEnd := currTime.Add(time.Hour * 24 * time.Duration(int64(p.Lease))) // format 2020-04-06 00:15:44 -0700 PDT
-			extendLeaseTo := ConvertToISO8601(newLeaseEnd)
-			log.Info("Starting Change Lease action on the deployment with id %v. The lease will be extended by %v days.", p.DeploymentID, p.Lease)
+			log.Info("Starting Change Lease action on the deployment with id %v. The lease will be extended until %v.", p.DeploymentID, p.LeaseEnd)
 			_ = ReplaceValueInRequestTemplate(
-				resourceActionTemplate.Data, "provider-ExpirationDate", extendLeaseTo)
+				resourceActionTemplate.Data, "provider-ExpirationDate", ConvertToISO8601(p.LeaseEnd))
 			requestID, err := vraClient.PostResourceAction(p.DeploymentID, changeLeaseActionID, resourceActionTemplate)
 			if err != nil {
 				log.Errorf("The change lease request failed with error: %v ", err)
@@ -421,8 +436,8 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 		rMap := resource.(map[string]interface{})
 		resourceType := rMap["resourceType"].(string)
 		name := rMap["name"].(string)
-		dateCreated := rMap["dateCreated"].(string)
-		lastUpdated := rMap["lastUpdated"].(string)
+		dateCreated := ConvertToDateTime(rMap["dateCreated"].(string))
+		lastUpdated := ConvertToDateTime(rMap["lastUpdated"].(string))
 		resourceID := rMap["resourceId"].(string)
 		requestID := rMap["requestId"].(string)
 		requestState := rMap["requestState"].(string)
@@ -445,7 +460,7 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			resourceConfigStruct.ParentResourceID = parentResourceID
 			resourceConfigStruct.IPAddress = data["ip_address"].(string)
 
-			if p != nil && p.ResourceConfiguration != nil {
+			if p.ResourceConfiguration != nil {
 				resourceConfigStruct.Configuration = GetConfiguration(componentName, p.ResourceConfiguration)
 			}
 
@@ -463,20 +478,12 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 		} else if resourceType == sdk.DeploymentResourceType {
 
 			leaseMap := rMap["lease"].(map[string]interface{})
-			leaseStart := leaseMap["start"].(string)
+			leaseStart := ConvertToDateTime(leaseMap["start"].(string))
 			d.Set("lease_start", leaseStart)
 			// if the lease never expires, the end date will be null
 			if leaseMap["end"] != nil {
-				leaseEnd := leaseMap["end"].(string)
+				leaseEnd := ConvertToDateTime(leaseMap["end"].(string))
 				d.Set("lease_end", leaseEnd)
-				// the lease_days are calculated from the current time and lease_end dates as the resourceViews API does not return that information
-				currTime, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-				endTime, _ := time.Parse(time.RFC3339, leaseEnd)
-				diff := endTime.Sub(currTime)
-				d.Set("lease_days", int(diff.Hours()/24))
-				// end
-			} else {
-				d.Set("lease_days", nil) // set lease days to nil if lease_end is nil
 			}
 
 			d.Set("catalog_item_id", rMap["catalogItemId"].(string))
@@ -617,6 +624,7 @@ func readProviderConfiguration(d *schema.ResourceData, vraClient *sdk.APIClient)
 		BusinessGroupName:       strings.TrimSpace(d.Get("businessgroup_name").(string)),
 		BusinessGroupID:         strings.TrimSpace(d.Get("businessgroup_id").(string)),
 		Lease:                   d.Get("lease_days").(int),
+		LeaseEnd:                d.Get("lease_end").(string),
 		DeploymentID:            strings.TrimSpace(d.Get("deployment_id").(string)),
 		WaitTimeout:             d.Get("wait_timeout").(int) * 60,
 		ResourceConfiguration:   expandResourceConfiguration(d.Get("resource_configuration").(*schema.Set).List()),
@@ -707,7 +715,7 @@ func GetActionNameIDMap(resourceActions []sdk.Operation) map[string]string {
 	return actionNameIDMap
 }
 
-// GetResourceByID return the resoirce config struct object filtered by ID
+// GetResourceByID return the resource config struct object filtered by ID
 func GetResourceByID(resourceConfigStructList []sdk.ResourceConfigurationStruct, resourceID string) sdk.ResourceConfigurationStruct {
 	var resourceConfigStruct sdk.ResourceConfigurationStruct
 	for _, resourceStruct := range resourceConfigStructList {
@@ -716,14 +724,4 @@ func GetResourceByID(resourceConfigStructList []sdk.ResourceConfigurationStruct,
 		}
 	}
 	return resourceConfigStruct
-}
-
-// ConvertToISO8601 converts time to the format ISO8601 (2020-04-16T00:15:44.700Z) that vRA 7.x understands
-func ConvertToISO8601(givenTime time.Time) string {
-	rfc339Time, _ := time.Parse(time.RFC3339, givenTime.Format(time.RFC3339)) // 2020-04-06 00:15:44 -0700 PDT
-	testArray := strings.Fields(rfc339Time.String())                          // ["2020-04-06", "00:15:44", "-0700", "PDT"]
-	length := len(testArray[2])                                               // length of -0700
-	last3 := testArray[2][length-3 : length]                                  // 700
-	iso8601Time := testArray[0] + "T" + testArray[1] + "." + last3 + "Z"      // 2020-04-16T00:15:44.700Z
-	return iso8601Time
 }
