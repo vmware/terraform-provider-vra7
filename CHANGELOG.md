@@ -1,4 +1,21 @@
-## 1.1.0 (Unreleased)
+## 1.0.4 (Unreleased)
+
+## 1.0.3 (Aug 31, 2020)
+
+BUG FIXES:
+
+* Provider 1.0.1 - Required to specify leasedays even if there's a default specified in the blueprint  ([#64](https://github.com/vmware/terraform-provider-vra7/issues/64))
+* Issue with Terraform PLAN  ([#74](https://github.com/vmware/terraform-provider-vra7/issues/74))
+* Output missing when relying on defaults for "resource_configuration"  ([#80](https://github.com/vmware/terraform-provider-vra7/issues/80))
+
+## 1.0.2 (Aug 17, 2020)
+
+IMPROVEMENTS:
+* Fix golangci-lint errors (#77)
+* Add new release mechanism via goreleaser and github actions (#76)
+* Rename from terraform-providers to vmware due to repo move (#75)
+* Cleanup after v1.0.1 release
+
 ## 1.0.1 (April 21, 2020)
 
 BUG FIXES:
