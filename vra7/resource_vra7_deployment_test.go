@@ -106,6 +106,8 @@ func TestAccVra7Deployment(t *testing.T) {
 						"vra7_deployment.this", "reasons", "Testing the vRA 7 Terraform provider"),
 					resource.TestCheckResourceAttr(
 						"vra7_deployment.this", "businessgroup_name", "Terraform-BG"),
+					resource.TestCheckResourceAttr(
+						"vra7_deployment.this", "resource_configuration.#", "3"),
 				),
 			},
 			{
@@ -118,6 +120,8 @@ func TestAccVra7Deployment(t *testing.T) {
 						"vra7_deployment.this", "reasons", "Testing the vRA 7 Terraform provider"),
 					resource.TestCheckResourceAttr(
 						"vra7_deployment.this", "businessgroup_name", "Terraform-BG"),
+					resource.TestCheckResourceAttr(
+						"vra7_deployment.this", "resource_configuration.#", "2"),
 				),
 			},
 		},
@@ -142,7 +146,7 @@ func testAccCheckVra7DeploymentDestroy(s *terraform.State) error {
 		if rs.Type != "vra7_deployment" {
 			continue
 		}
-		_, err := client.GetRequestResourceView(rs.Primary.ID)
+		_, err := client.GetRequestResourceView(rs.Primary.ID, 1)
 		if err == nil {
 			return err
 		}
@@ -156,14 +160,13 @@ resource "vra7_deployment" "this" {
 	catalog_item_name = "Terraform-Simple-BP"
 	description = "Terraform deployment"
 	reasons = "Testing the vRA 7 Terraform provider"
-	lease_days = 20
 	deployment_configuration = {
 		"BPCustomProperty" = "custom deployment property"
 	}
 	
 	resource_configuration {
 		component_name = "vSphere1"
-		cluster = 2
+		cluster = 1
 		configuration = {
 			cpu = 2
 			memory = 2048
@@ -179,7 +182,7 @@ resource "vra7_deployment" "this" {
 			memory = 2048
 		}
 	}
-	wait_timeout = 20
+	wait_timeout = 30
 	businessgroup_name = "Terraform-BG"
 }`
 }
@@ -190,7 +193,6 @@ resource "vra7_deployment" "this" {
 	catalog_item_name = "Terraform-Simple-BP"
 	description = "Terraform deployment"
 	reasons = "Testing the vRA 7 Terraform provider"
-	lease_days = 20
 	deployment_configuration = {
 		"BPCustomProperty" = "custom deployment property"
 	}
@@ -199,7 +201,7 @@ resource "vra7_deployment" "this" {
 		component_name = "vSphere1"
 		cluster = 1
 		configuration = {
-			cpu = 4
+			cpu = 2
 			memory = 2048
 			vSphere1CustomProperty = "custom machine property"
 		}
@@ -208,11 +210,11 @@ resource "vra7_deployment" "this" {
 		cluster = 1
 		component_name = "vSphere2"
 		configuration = {
-			cpu = 2
+			cpu = 3
 			memory = 2048
 		}
 	}
-	wait_timeout = 20
+	wait_timeout = 30
 	businessgroup_name = "Terraform-BG"
 }`
 }

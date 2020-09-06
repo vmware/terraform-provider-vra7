@@ -12,45 +12,26 @@ func resourceConfigurationSchema(optional bool) *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: optional,
-		Computed: true,
+		Computed: !optional,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"component_name": {
 					Type:     schema.TypeString,
 					Optional: optional,
-					Computed: true,
+					Computed: !optional,
 				},
 				"configuration": {
 					Type:     schema.TypeMap,
 					Optional: optional,
-					Computed: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
-				"resource_state": {
-					Type:     schema.TypeMap,
-					Computed: true,
+					Computed: !optional,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
 					},
 				},
 				"cluster": {
 					Type:     schema.TypeInt,
-					Optional: optional,
-					Computed: true,
-				},
-				"resource_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"name": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"description": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Optional: true,
+					Default:  1,
 				},
 				"parent_resource_id": {
 					Type:     schema.TypeString,
@@ -59,6 +40,7 @@ func resourceConfigurationSchema(optional bool) *schema.Schema {
 				"ip_address": {
 					Type:     schema.TypeString,
 					Computed: true,
+					Removed:  "The ip_address is removed from here and available under resource_state",
 				},
 				"request_id": {
 					Type:     schema.TypeString,
@@ -68,21 +50,52 @@ func resourceConfigurationSchema(optional bool) *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
-				"resource_type": {
-					Type:     schema.TypeString,
+				"resource_state": {
+					Type:     schema.TypeList,
 					Computed: true,
-				},
-				"status": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"date_created": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"last_updated": {
-					Type:     schema.TypeString,
-					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"resource_id": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"name": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"ip_address": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"resource_type": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"description": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"status": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"date_created": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"last_updated": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"state": {
+								Type:     schema.TypeMap,
+								Computed: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -96,20 +109,9 @@ func expandResourceConfiguration(rConfigurations []interface{}) []sdk.ResourceCo
 		configMap := config.(map[string]interface{})
 
 		rConfig := sdk.ResourceConfigurationStruct{
-			ComponentName:    configMap["component_name"].(string),
-			Configuration:    configMap["configuration"].(map[string]interface{}),
-			ResourceState:    configMap["resource_state"].(map[string]interface{}),
-			Cluster:          configMap["cluster"].(int),
-			Name:             configMap["name"].(string),
-			Description:      configMap["description"].(string),
-			DateCreated:      configMap["date_created"].(string),
-			LastUpdated:      configMap["last_updated"].(string),
-			ParentResourceID: configMap["parent_resource_id"].(string),
-			ResourceID:       configMap["resource_id"].(string),
-			ResourceType:     configMap["resource_type"].(string),
-			RequestID:        configMap["request_id"].(string),
-			RequestState:     configMap["request_state"].(string),
-			IPAddress:        configMap["ip_address"].(string),
+			ComponentName: configMap["component_name"].(string),
+			Configuration: configMap["configuration"].(map[string]interface{}),
+			Cluster:       configMap["cluster"].(int),
 		}
 		configs = append(configs, rConfig)
 	}
@@ -122,24 +124,35 @@ func flattenResourceConfigurations(resourceConfigList []sdk.ResourceConfiguratio
 	}
 	rConfigs := make([]map[string]interface{}, 0, len(resourceConfigList))
 	for _, config := range resourceConfigList {
-		stateMap, configurationMap := parseDataMap(config.ResourceState, config.Configuration)
 		helper := make(map[string]interface{})
-		helper["resource_state"] = stateMap
-		helper["configuration"] = configurationMap
+		resourceStateList := make([]map[string]interface{}, 0)
+		for _, resourceState := range config.ResourceState {
+			rsMap := make(map[string]interface{})
+			rsMap["resource_id"] = resourceState.ResourceID
+			rsMap["resource_type"] = resourceState.ResourceType
+			rsMap["status"] = resourceState.Status
+			rsMap["name"] = resourceState.Name
+			rsMap["date_created"] = resourceState.DateCreated
+			rsMap["ip_address"] = resourceState.IPAddress
+			stateMap, configurationMap := parseDataMap(resourceState.State, config.Configuration)
+			rsMap["state"] = stateMap
+			resourceStateList = append(resourceStateList, rsMap)
+			helper["configuration"] = configurationMap
+		}
+		log.Critical("length of the rs list %v ", len(resourceStateList))
+		helper["resource_state"] = resourceStateList
 		helper["component_name"] = config.ComponentName
-		helper["name"] = config.Name
-		helper["date_created"] = config.DateCreated
-		helper["last_updated"] = config.LastUpdated
-		helper["resource_id"] = config.ResourceID
 		helper["request_id"] = config.RequestID
 		helper["parent_resource_id"] = config.ParentResourceID
-		helper["status"] = config.Status
 		helper["request_state"] = config.RequestState
-		helper["resource_type"] = config.ResourceType
 		helper["cluster"] = clusterCountMap[config.ComponentName]
-		helper["ip_address"] = config.IPAddress
+
 		rConfigs = append(rConfigs, helper)
 	}
+
+	// j, _ := json.Marshal(rConfigs)
+	// log.Critical("the struct in flatten is %v ", string(j))
+
 	return rConfigs
 }
 

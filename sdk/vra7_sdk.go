@@ -176,9 +176,13 @@ func (c *APIClient) GetRequestStatus(requestID string) (*RequestStatusView, erro
 }
 
 // GetRequestResourceView retrieves the resources that were provisioned as a result of a given request.
-func (c *APIClient) GetRequestResourceView(catalogRequestID string) (*RequestResourceView, error) {
+func (c *APIClient) GetRequestResourceView(catalogRequestID string, pageID int) (*RequestResourceView, error) {
 	path := fmt.Sprintf(GetRequestResourceViewAPI, catalogRequestID)
-	url := c.BuildEncodedURL(path, nil)
+	mm := make(map[string]string)
+	mm["limit"] = "5"
+	mm["page"] = strconv.Itoa(pageID)
+	url := c.BuildEncodedURL(path, mm)
+
 	resp, respErr := c.Get(url, nil)
 	if respErr != nil {
 		return nil, respErr
