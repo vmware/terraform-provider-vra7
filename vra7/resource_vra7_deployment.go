@@ -228,164 +228,164 @@ func updateRequestTemplate(templateInterface map[string]interface{}, field strin
 //The update is performed on the Deployment using supported (day-2) actions.
 func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) error {
 
-	log.Info("Updating the resource vra7_deployment with request id %s", d.Id())
-	vraClient := meta.(*sdk.APIClient)
-	// Get the ID of the catalog request that was used to provision this Deployment.
-	catalogItemRequestID := d.Id()
-	// Get client handle
+	// log.Info("Updating the resource vra7_deployment with request id %s", d.Id())
+	// vraClient := meta.(*sdk.APIClient)
+	// // Get the ID of the catalog request that was used to provision this Deployment.
+	// catalogItemRequestID := d.Id()
+	// // Get client handle
 
-	p, err := readProviderConfiguration(d, vraClient)
-	if err != nil {
-		return err
-	}
-	_, validityErr := p.checkResourceConfigValidity(vraClient)
-	if validityErr != nil {
-		return validityErr
-	}
+	// p, err := readProviderConfiguration(d, vraClient)
+	// if err != nil {
+	// 	return err
+	// }
+	// _, validityErr := p.checkResourceConfigValidity(vraClient)
+	// if validityErr != nil {
+	// 	return validityErr
+	// }
 
-	//Change Lease Day 2 operation
-	if d.HasChange("lease_days") {
-		deploymentResourceActions, _ := vraClient.GetResourceActions(p.DeploymentID)
-		deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
-		changeLeaseActionID := deploymentActionsMap["Change Lease"]
-		if changeLeaseActionID != "" {
-			resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(p.DeploymentID, changeLeaseActionID)
-			currTime, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))    // format 2020-04-06 00:15:44 -0700 PDT
-			newLeaseEnd := currTime.Add(time.Hour * 24 * time.Duration(int64(p.Lease))) // format 2020-04-06 00:15:44 -0700 PDT
-			extendLeaseTo := ConvertToISO8601(newLeaseEnd)
-			log.Info("Starting Change Lease action on the deployment with id %v. The lease will be extended by %v days.", p.DeploymentID, p.Lease)
-			_ = ReplaceValueInRequestTemplate(
-				resourceActionTemplate.Data, "provider-ExpirationDate", extendLeaseTo)
-			requestID, err := vraClient.PostResourceAction(p.DeploymentID, changeLeaseActionID, resourceActionTemplate)
-			if err != nil {
-				log.Errorf("The change lease request failed with error: %v ", err)
-				return err
-			}
-			_, err = waitForRequestCompletion(d, meta, requestID)
-			if err != nil {
-				log.Errorf("The change lease request failed with error: %v ", err)
-				return err
-			}
-			log.Info("Successfully completed the Change Lease action for the deployment with id %v.", p.DeploymentID)
-		}
-	}
+	// //Change Lease Day 2 operation
+	// if d.HasChange("lease_days") {
+	// 	deploymentResourceActions, _ := vraClient.GetResourceActions(p.DeploymentID)
+	// 	deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
+	// 	changeLeaseActionID := deploymentActionsMap["Change Lease"]
+	// 	if changeLeaseActionID != "" {
+	// 		resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(p.DeploymentID, changeLeaseActionID)
+	// 		currTime, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))    // format 2020-04-06 00:15:44 -0700 PDT
+	// 		newLeaseEnd := currTime.Add(time.Hour * 24 * time.Duration(int64(p.Lease))) // format 2020-04-06 00:15:44 -0700 PDT
+	// 		extendLeaseTo := ConvertToISO8601(newLeaseEnd)
+	// 		log.Info("Starting Change Lease action on the deployment with id %v. The lease will be extended by %v days.", p.DeploymentID, p.Lease)
+	// 		_ = ReplaceValueInRequestTemplate(
+	// 			resourceActionTemplate.Data, "provider-ExpirationDate", extendLeaseTo)
+	// 		requestID, err := vraClient.PostResourceAction(p.DeploymentID, changeLeaseActionID, resourceActionTemplate)
+	// 		if err != nil {
+	// 			log.Errorf("The change lease request failed with error: %v ", err)
+	// 			return err
+	// 		}
+	// 		_, err = waitForRequestCompletion(d, meta, requestID)
+	// 		if err != nil {
+	// 			log.Errorf("The change lease request failed with error: %v ", err)
+	// 			return err
+	// 		}
+	// 		log.Info("Successfully completed the Change Lease action for the deployment with id %v.", p.DeploymentID)
+	// 	}
+	// }
 
-	// get the old and new resource_configuration data
-	old, new := d.GetChange("resource_configuration")
-	oldResourceConfigList := expandResourceConfiguration(old.(*schema.Set).List())
-	newResourceConfigList := expandResourceConfiguration(new.(*schema.Set).List())
+	// // get the old and new resource_configuration data
+	// old, new := d.GetChange("resource_configuration")
+	// oldResourceConfigList := expandResourceConfiguration(old.(*schema.Set).List())
+	// newResourceConfigList := expandResourceConfiguration(new.(*schema.Set).List())
 
-	if d.HasChange("resource_configuration") {
-		for _, newResourceConfig := range newResourceConfigList {
-			oldResourceConfig := GetResourceConfigurationByComponent(oldResourceConfigList, newResourceConfig.ComponentName)
-			if oldResourceConfig.ComponentName != "" {
-				deploymentResourceActions, _ := vraClient.GetResourceActions(p.DeploymentID)
-				deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
-				if newResourceConfig.Cluster != 0 && oldResourceConfig.Cluster != newResourceConfig.Cluster {
-					if oldResourceConfig.Cluster < newResourceConfig.Cluster && deploymentActionsMap[sdk.ScaleOut] != "" {
-						// Scale Out Day 2 operation
-						scaleOutActionID := deploymentActionsMap[sdk.ScaleOut]
-						// get the action template for scale out
-						resourceActionTemplate, err := vraClient.GetResourceActionTemplate(p.DeploymentID, scaleOutActionID)
-						if err != nil {
-							return err
-						}
-						// get the map from the action template corresponding to the key which is the component name
-						actionTemplateDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, newResourceConfig.ComponentName)
-						// update the template with the new cluster size
-						log.Info("Starting Scale Out action on the deployment with id %v for the component %v. The cluster size will be increased from %v to %v.",
-							p.DeploymentID, oldResourceConfig.ComponentName, oldResourceConfig.Cluster, newResourceConfig.Cluster)
-						_ = ReplaceValueInRequestTemplate(
-							actionTemplateDataMap, "_cluster", newResourceConfig.Cluster)
-						requestID, err := vraClient.PostResourceAction(p.DeploymentID, scaleOutActionID, resourceActionTemplate)
-						if err != nil {
-							log.Errorf("The scale out request failed with error: %v ", err)
-							return err
-						}
-						log.Info("The Scale Out operation for the component %v has been submitted", newResourceConfig.ComponentName)
-						_, err = waitForRequestCompletion(d, meta, requestID)
-						if err != nil {
-							log.Errorf("The scale out request failed with error: %v ", err)
-							return err
-						}
-						log.Info("Successfully completed the Scale Out action for the deployment with id %v.", p.DeploymentID)
-					} else if oldResourceConfig.Cluster > newResourceConfig.Cluster && deploymentActionsMap[sdk.ScaleIn] != "" {
-						// Scale In Day 2 operation
-						scaleInActionID := deploymentActionsMap[sdk.ScaleIn]
-						// get the action template for scale in
-						resourceActionTemplate, err := vraClient.GetResourceActionTemplate(p.DeploymentID, scaleInActionID)
-						if err != nil {
-							return err
-						}
-						// get the map from the action template corresponding to the key which is the component name
-						actionTemplateDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, newResourceConfig.ComponentName)
-						// update the template with the new cluster size
-						log.Info("Starting Scale In action on the deployment with id %v for the component %v. The cluster size will be decresed from %v to %v.",
-							p.DeploymentID, oldResourceConfig.ComponentName, oldResourceConfig.Cluster, newResourceConfig.Cluster)
-						_ = ReplaceValueInRequestTemplate(
-							actionTemplateDataMap, "_cluster", newResourceConfig.Cluster)
-						requestID, err := vraClient.PostResourceAction(p.DeploymentID, scaleInActionID, resourceActionTemplate)
-						if err != nil {
-							log.Errorf("The scale in request failed with error: %v ", err)
-							return err
-						}
-						log.Info("The Scale In operation for the component %v has been submitted", newResourceConfig.ComponentName)
-						_, err = waitForRequestCompletion(d, meta, requestID)
-						if err != nil {
-							log.Errorf("The scale in request failed with error: %v ", err)
-							return err
-						}
-						log.Info("Successfully completed the Scale In action for the deployment with id %v.", p.DeploymentID)
-					}
-				}
-			}
-		}
+	// if d.HasChange("resource_configuration") {
+	// 	for _, newResourceConfig := range newResourceConfigList {
+	// 		oldResourceConfig := GetResourceConfigurationByComponent(oldResourceConfigList, newResourceConfig.ComponentName)
+	// 		if oldResourceConfig.ComponentName != "" {
+	// 			deploymentResourceActions, _ := vraClient.GetResourceActions(p.DeploymentID)
+	// 			deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
+	// 			if newResourceConfig.Cluster != 0 && oldResourceConfig.Cluster != newResourceConfig.Cluster {
+	// 				if oldResourceConfig.Cluster < newResourceConfig.Cluster && deploymentActionsMap[sdk.ScaleOut] != "" {
+	// 					// Scale Out Day 2 operation
+	// 					scaleOutActionID := deploymentActionsMap[sdk.ScaleOut]
+	// 					// get the action template for scale out
+	// 					resourceActionTemplate, err := vraClient.GetResourceActionTemplate(p.DeploymentID, scaleOutActionID)
+	// 					if err != nil {
+	// 						return err
+	// 					}
+	// 					// get the map from the action template corresponding to the key which is the component name
+	// 					actionTemplateDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, newResourceConfig.ComponentName)
+	// 					// update the template with the new cluster size
+	// 					log.Info("Starting Scale Out action on the deployment with id %v for the component %v. The cluster size will be increased from %v to %v.",
+	// 						p.DeploymentID, oldResourceConfig.ComponentName, oldResourceConfig.Cluster, newResourceConfig.Cluster)
+	// 					_ = ReplaceValueInRequestTemplate(
+	// 						actionTemplateDataMap, "_cluster", newResourceConfig.Cluster)
+	// 					requestID, err := vraClient.PostResourceAction(p.DeploymentID, scaleOutActionID, resourceActionTemplate)
+	// 					if err != nil {
+	// 						log.Errorf("The scale out request failed with error: %v ", err)
+	// 						return err
+	// 					}
+	// 					log.Info("The Scale Out operation for the component %v has been submitted", newResourceConfig.ComponentName)
+	// 					_, err = waitForRequestCompletion(d, meta, requestID)
+	// 					if err != nil {
+	// 						log.Errorf("The scale out request failed with error: %v ", err)
+	// 						return err
+	// 					}
+	// 					log.Info("Successfully completed the Scale Out action for the deployment with id %v.", p.DeploymentID)
+	// 				} else if oldResourceConfig.Cluster > newResourceConfig.Cluster && deploymentActionsMap[sdk.ScaleIn] != "" {
+	// 					// Scale In Day 2 operation
+	// 					scaleInActionID := deploymentActionsMap[sdk.ScaleIn]
+	// 					// get the action template for scale in
+	// 					resourceActionTemplate, err := vraClient.GetResourceActionTemplate(p.DeploymentID, scaleInActionID)
+	// 					if err != nil {
+	// 						return err
+	// 					}
+	// 					// get the map from the action template corresponding to the key which is the component name
+	// 					actionTemplateDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, newResourceConfig.ComponentName)
+	// 					// update the template with the new cluster size
+	// 					log.Info("Starting Scale In action on the deployment with id %v for the component %v. The cluster size will be decresed from %v to %v.",
+	// 						p.DeploymentID, oldResourceConfig.ComponentName, oldResourceConfig.Cluster, newResourceConfig.Cluster)
+	// 					_ = ReplaceValueInRequestTemplate(
+	// 						actionTemplateDataMap, "_cluster", newResourceConfig.Cluster)
+	// 					requestID, err := vraClient.PostResourceAction(p.DeploymentID, scaleInActionID, resourceActionTemplate)
+	// 					if err != nil {
+	// 						log.Errorf("The scale in request failed with error: %v ", err)
+	// 						return err
+	// 					}
+	// 					log.Info("The Scale In operation for the component %v has been submitted", newResourceConfig.ComponentName)
+	// 					_, err = waitForRequestCompletion(d, meta, requestID)
+	// 					if err != nil {
+	// 						log.Errorf("The scale in request failed with error: %v ", err)
+	// 						return err
+	// 					}
+	// 					log.Info("Successfully completed the Scale In action for the deployment with id %v.", p.DeploymentID)
+	// 				}
+	// 			}
+	// 		}
+	// 	}
 
-		resources, err := vraClient.GetRequestResources(catalogItemRequestID)
-		if err != nil {
-			return fmt.Errorf("Error while getting resources for the request %v: %v  ", catalogItemRequestID, err.Error())
-		}
-		// Reconfigure Day 2 operation
-		for _, resource := range resources.Content {
-			oldResourceConfig := GetResourceByID(oldResourceConfigList, resource.ID)
-			if oldResourceConfig.ComponentName != "" {
+	// 	resources, err := vraClient.GetRequestResources(catalogItemRequestID)
+	// 	if err != nil {
+	// 		return fmt.Errorf("Error while getting resources for the request %v: %v  ", catalogItemRequestID, err.Error())
+	// 	}
+	// 	// Reconfigure Day 2 operation
+	// 	for _, resource := range resources.Content {
+	// 		oldResourceConfig := GetResourceByID(oldResourceConfigList, resource.ID)
+	// 		if oldResourceConfig.ComponentName != "" {
 
-				vmResourceActions, _ := vraClient.GetResourceActions(oldResourceConfig.ResourceID)
-				vmResourceActionsMap := GetActionNameIDMap(vmResourceActions)
-				if vmResourceActionsMap[sdk.Reconfigure] != "" {
-					reconfigureActionID := vmResourceActionsMap[sdk.Reconfigure]
-					resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(oldResourceConfig.ResourceID, reconfigureActionID)
-					newResourceConfig := GetResourceConfigurationByComponent(newResourceConfigList, oldResourceConfig.ComponentName)
-					configChanged := false
-					actionTemplateDataMap := resourceActionTemplate.Data
-					for propertyName, propertyValue := range newResourceConfig.Configuration {
-						if oldResourceConfig.Configuration[propertyName] != propertyValue {
-							_ = ReplaceValueInRequestTemplate(
-								actionTemplateDataMap, propertyName, propertyValue)
-							if !configChanged {
-								configChanged = true
-							}
-						}
-					}
-					if configChanged {
-						log.Info("Starting Reconfigure action on the component %v.", oldResourceConfig.ComponentName)
-						requestID, err := vraClient.PostResourceAction(oldResourceConfig.ResourceID, reconfigureActionID, resourceActionTemplate)
-						if err != nil {
-							log.Errorf("The reconfigure request failed with error: %v ", err)
-							return err
-						}
-						log.Info("The Reconfigure operation for the component %v has been submitted", oldResourceConfig.ComponentName)
-						_, err = waitForRequestCompletion(d, meta, requestID)
-						if err != nil {
-							log.Errorf("The reconfigure request for component %v failed with error: %v ", oldResourceConfig.ComponentName, err)
-							return err
-						}
-						log.Info("Successfully completed the Reconfiguret action on the component %v.", oldResourceConfig.ComponentName)
-					}
-				}
-			}
-		}
-	}
+	// 			vmResourceActions, _ := vraClient.GetResourceActions(oldResourceConfig.ResourceID)
+	// 			vmResourceActionsMap := GetActionNameIDMap(vmResourceActions)
+	// 			if vmResourceActionsMap[sdk.Reconfigure] != "" {
+	// 				reconfigureActionID := vmResourceActionsMap[sdk.Reconfigure]
+	// 				resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(oldResourceConfig.ResourceID, reconfigureActionID)
+	// 				newResourceConfig := GetResourceConfigurationByComponent(newResourceConfigList, oldResourceConfig.ComponentName)
+	// 				configChanged := false
+	// 				actionTemplateDataMap := resourceActionTemplate.Data
+	// 				for propertyName, propertyValue := range newResourceConfig.Configuration {
+	// 					if oldResourceConfig.Configuration[propertyName] != propertyValue {
+	// 						_ = ReplaceValueInRequestTemplate(
+	// 							actionTemplateDataMap, propertyName, propertyValue)
+	// 						if !configChanged {
+	// 							configChanged = true
+	// 						}
+	// 					}
+	// 				}
+	// 				if configChanged {
+	// 					log.Info("Starting Reconfigure action on the component %v.", oldResourceConfig.ComponentName)
+	// 					requestID, err := vraClient.PostResourceAction(oldResourceConfig.ResourceID, reconfigureActionID, resourceActionTemplate)
+	// 					if err != nil {
+	// 						log.Errorf("The reconfigure request failed with error: %v ", err)
+	// 						return err
+	// 					}
+	// 					log.Info("The Reconfigure operation for the component %v has been submitted", oldResourceConfig.ComponentName)
+	// 					_, err = waitForRequestCompletion(d, meta, requestID)
+	// 					if err != nil {
+	// 						log.Errorf("The reconfigure request for component %v failed with error: %v ", oldResourceConfig.ComponentName, err)
+	// 						return err
+	// 					}
+	// 					log.Info("Successfully completed the Reconfiguret action on the component %v.", oldResourceConfig.ComponentName)
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 	log.Info("Finished updating the resource vra7_deployment with request id %s", d.Id())
 	return resourceVra7DeploymentRead(d, meta)
 }
@@ -393,6 +393,7 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 // This function retrieves the latest state of a vRA 7 deployment. Terraform updates its state based on
 // the information returned by this function.
 func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error {
+
 	log.Info("Reading the resource vra7_deployment with request id %s ", d.Id())
 	vraClient := meta.(*sdk.APIClient)
 
@@ -404,99 +405,116 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 	// Get the ID of the catalog request that was used to provision this Deployment. This id
 	// will remain the same for this deployment across any actions on the machines like reconfigure, etc.
 	catalogItemRequestID := d.Id()
-
-	requestResourceView, errTemplate := vraClient.GetRequestResourceView(catalogItemRequestID)
-	if requestResourceView != nil && len(requestResourceView.Content) == 0 {
-		//If resource does not exists then unset the resource ID from state file
-		d.SetId("")
-		return fmt.Errorf("The resource cannot be found")
-	}
-	if errTemplate != nil || len(requestResourceView.Content) == 0 {
-		return fmt.Errorf("Resource view failed to load with the error %v", errTemplate)
-	}
-
+	// Since the resource view API above do not provide the cluster value, it is calculated
+	// by tracking the component name and updated in the state file
 	clusterCountMap := make(map[string]int)
+	// parse the resource view API response and create a resource configuration list that will contain information
+	// of the deployed VMs
 	var resourceConfigList []sdk.ResourceConfigurationStruct
-	for _, resource := range requestResourceView.Content {
-		rMap := resource.(map[string]interface{})
-		resourceType := rMap["resourceType"].(string)
-		name := rMap["name"].(string)
-		dateCreated := rMap["dateCreated"].(string)
-		lastUpdated := rMap["lastUpdated"].(string)
-		resourceID := rMap["resourceId"].(string)
-		requestID := rMap["requestId"].(string)
-		requestState := rMap["requestState"].(string)
 
-		// if the resource type is VMs, update the resource_configuration attribute
-		if resourceType == sdk.InfrastructureVirtual {
-			data := rMap["data"].(map[string]interface{})
-			componentName := data["Component"].(string)
-			parentResourceID := rMap["parentResourceId"].(string)
-			var resourceConfigStruct sdk.ResourceConfigurationStruct
-			resourceConfigStruct.ResourceState = data
-			resourceConfigStruct.ComponentName = componentName
-			resourceConfigStruct.Name = name
-			resourceConfigStruct.DateCreated = dateCreated
-			resourceConfigStruct.LastUpdated = lastUpdated
-			resourceConfigStruct.ResourceID = resourceID
-			resourceConfigStruct.ResourceType = resourceType
-			resourceConfigStruct.RequestID = requestID
-			resourceConfigStruct.RequestState = requestState
-			resourceConfigStruct.ParentResourceID = parentResourceID
-			resourceConfigStruct.IPAddress = data["ip_address"].(string)
+	currentPage := 1
+	totalPages := 1
 
-			if p != nil && p.ResourceConfiguration != nil {
-				resourceConfigStruct.Configuration = GetConfiguration(componentName, p.ResourceConfiguration)
-			}
+	for currentPage <= totalPages {
+		requestResourceView, errTemplate := vraClient.GetRequestResourceView(catalogItemRequestID, currentPage)
+		// if resource does not exists, then unset the resource ID from state file
+		if requestResourceView != nil && len(requestResourceView.Content) == 0 {
+			d.SetId("")
+			return fmt.Errorf("The resource cannot be found")
+		}
+		if errTemplate != nil || len(requestResourceView.Content) == 0 {
+			return fmt.Errorf("Resource view failed to load with the error %v", errTemplate)
+		}
 
-			if rMap["description"] != nil {
-				resourceConfigStruct.Description = rMap["description"].(string)
-			}
-			if rMap["status"] != nil {
-				resourceConfigStruct.Status = rMap["status"].(string)
-			}
-			// the cluster value is calculated from the map based on the component name as the
-			// resourceViews API does not return that information
-			clusterCountMap[componentName] = clusterCountMap[componentName] + 1
-			resourceConfigList = append(resourceConfigList, resourceConfigStruct)
+		currentPage = requestResourceView.MetaData.Number + 1
+		totalPages = requestResourceView.MetaData.TotalPages
 
-		} else if resourceType == sdk.DeploymentResourceType {
+		for _, resource := range requestResourceView.Content {
 
-			leaseMap := rMap["lease"].(map[string]interface{})
-			leaseStart := leaseMap["start"].(string)
-			d.Set("lease_start", leaseStart)
-			// if the lease never expires, the end date will be null
-			if leaseMap["end"] != nil {
-				leaseEnd := leaseMap["end"].(string)
-				d.Set("lease_end", leaseEnd)
-				// the lease_days are calculated from the current time and lease_end dates as the resourceViews API does not return that information
-				currTime, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-				endTime, _ := time.Parse(time.RFC3339, leaseEnd)
-				diff := endTime.Sub(currTime)
-				d.Set("lease_days", int(diff.Hours()/24))
-				// end
-			} else {
-				d.Set("lease_days", nil) // set lease days to nil if lease_end is nil
-			}
+			// map containing the content of a resourceView response
+			rMap := resource.(map[string]interface{})
+			// fetching the catalog item request specific data
+			requestID := rMap["requestId"].(string)
+			requestState := rMap["requestState"].(string)
+			// fetching common attributes of a resource. A resource can be Infrastructure.Virtual or a deployment, etc
+			resourceType := rMap["resourceType"].(string)
+			dateCreated := rMap["dateCreated"].(string)
+			lastUpdated := rMap["lastUpdated"].(string)
+			resourceID := rMap["resourceId"].(string)
+			name := rMap["name"].(string)
+			description := rMap["description"].(string)
+			status := rMap["status"].(string)
 
-			d.Set("catalog_item_id", rMap["catalogItemId"].(string))
-			d.Set("catalog_item_name", rMap["catalogItemLabel"].(string))
-			d.Set("deployment_id", resourceID)
-			d.Set("date_created", dateCreated)
-			d.Set("last_updated", lastUpdated)
-			d.Set("tenant_id", rMap["tenantId"].(string))
-			d.Set("owners", rMap["owners"].([]interface{}))
-			d.Set("name", name)
-			d.Set("businessgroup_id", rMap["businessGroupId"].(string))
-			if rMap["description"] != nil {
-				d.Set("description", rMap["description"].(string))
-			}
-			if rMap["status"] != nil {
-				d.Set("request_status", rMap["status"].(string))
+			// if the resource type is VMs, update the resource_configuration attribute
+			if resourceType == sdk.InfrastructureVirtual {
+				data := rMap["data"].(map[string]interface{})
+				resourceState := sdk.ResourceState{}
+				resourceState.DateCreated = dateCreated
+				resourceState.LastUpdated = lastUpdated
+				resourceState.IPAddress = data["ip_address"].(string)
+				resourceState.Name = name
+				resourceState.ResourceID = resourceID
+				resourceState.ResourceType = resourceType
+				resourceState.State = data
+				resourceState.Description = description
+				resourceState.Status = status
+				componentName := data["Component"].(string)
+
+				index, rcStruct := GetResourceConfigurationByComponent(resourceConfigList, componentName)
+
+				if index == -1 {
+					rcStruct.ComponentName = componentName
+					rcStruct.RequestID = requestID
+					rcStruct.RequestState = requestState
+					rcStruct.ParentResourceID = rMap["parentResourceId"].(string)
+					if p != nil && p.ResourceConfiguration != nil {
+						rcStruct.Configuration = GetConfiguration(componentName, p.ResourceConfiguration)
+					}
+					rcStruct.ResourceState = make([]sdk.ResourceState, 0)
+					rcStruct.ResourceState = append(rcStruct.ResourceState, resourceState)
+					resourceConfigList = append(resourceConfigList, rcStruct)
+				} else {
+					rcStruct.ResourceState = append(rcStruct.ResourceState, resourceState)
+					resourceConfigList[index] = rcStruct
+				}
+				clusterCountMap[componentName] = clusterCountMap[componentName] + 1
+
+			} else if resourceType == sdk.DeploymentResourceType {
+				d.Set("catalog_item_id", rMap["catalogItemId"].(string))
+				d.Set("catalog_item_name", rMap["catalogItemLabel"].(string))
+				d.Set("deployment_id", resourceID)
+				d.Set("date_created", dateCreated)
+				d.Set("last_updated", lastUpdated)
+				d.Set("tenant_id", rMap["tenantId"].(string))
+				d.Set("owners", rMap["owners"].([]interface{}))
+				d.Set("name", name)
+				d.Set("businessgroup_id", rMap["businessGroupId"].(string))
+				d.Set("description", description)
+				d.Set("request_status", status)
+				leaseMap := rMap["lease"].(map[string]interface{})
+				leaseStart := leaseMap["start"].(string)
+				d.Set("lease_start", leaseStart)
+				// if the lease never expires, the end date will be null
+				if leaseMap["end"] != nil {
+					leaseEnd := leaseMap["end"].(string)
+					d.Set("lease_end", leaseEnd)
+					// the lease_days are calculated from the current time and lease_end dates as the resourceViews API does not return that information
+					currTime, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+					endTime, _ := time.Parse(time.RFC3339, leaseEnd)
+					diff := endTime.Sub(currTime)
+					d.Set("lease_days", int(diff.Hours()/24))
+					// end
+				} else {
+					d.Set("lease_days", nil) // set lease days to nil if lease_end is nil
+				}
 			}
 		}
 	}
-	if err := d.Set("resource_configuration", flattenResourceConfigurations(resourceConfigList, clusterCountMap)); err != nil {
+
+	list := flattenResourceConfigurations(resourceConfigList, clusterCountMap)
+	// j, _ := json.Marshal(list)
+	// log.Critical("%v", string(j))
+	if err := d.Set("resource_configuration", list); err != nil {
 		return fmt.Errorf("error setting resource configuration - error: %v", err)
 	}
 
@@ -650,7 +668,7 @@ func readProviderConfiguration(d *schema.ResourceData, vraClient *sdk.APIClient)
 func waitForRequestCompletion(d *schema.ResourceData, meta interface{}, requestID string) (string, error) {
 	vraClient := meta.(*sdk.APIClient)
 	waitTimeout := d.Get("wait_timeout").(int) * 60
-	sleepFor := 30
+	sleepFor := 20
 	status := ""
 	for i := 0; i < waitTimeout/sleepFor; i++ {
 		log.Info("Waiting for %d seconds before checking request status.", sleepFor)
@@ -688,14 +706,13 @@ func GetActionTemplateDataByComponent(actionTemplate map[string]interface{}, com
 }
 
 // GetResourceConfigurationByComponent returns the resource_configuration corresponding the component
-func GetResourceConfigurationByComponent(resourceConfigurationList []sdk.ResourceConfigurationStruct, component string) sdk.ResourceConfigurationStruct {
-	var resourceConfig sdk.ResourceConfigurationStruct
-	for _, rConfig := range resourceConfigurationList {
+func GetResourceConfigurationByComponent(resourceConfigurationList []sdk.ResourceConfigurationStruct, component string) (int, sdk.ResourceConfigurationStruct) {
+	for index, rConfig := range resourceConfigurationList {
 		if rConfig.ComponentName == component {
-			resourceConfig = rConfig
+			return index, rConfig
 		}
 	}
-	return resourceConfig
+	return -1, sdk.ResourceConfigurationStruct{}
 }
 
 // GetActionNameIDMap returns a map of Action name and id
@@ -707,12 +724,14 @@ func GetActionNameIDMap(resourceActions []sdk.Operation) map[string]string {
 	return actionNameIDMap
 }
 
-// GetResourceByID return the resoirce config struct object filtered by ID
+// GetResourceByID return the resource config struct object filtered by ID
 func GetResourceByID(resourceConfigStructList []sdk.ResourceConfigurationStruct, resourceID string) sdk.ResourceConfigurationStruct {
 	var resourceConfigStruct sdk.ResourceConfigurationStruct
 	for _, resourceStruct := range resourceConfigStructList {
-		if resourceStruct.ResourceID == resourceID {
-			resourceConfigStruct = resourceStruct
+		for _, state := range resourceStruct.ResourceState {
+			if state.ResourceID == resourceID {
+				resourceConfigStruct = resourceStruct
+			}
 		}
 	}
 	return resourceConfigStruct

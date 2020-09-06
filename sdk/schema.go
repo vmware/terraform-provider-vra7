@@ -9,18 +9,25 @@ type ResourceConfigurationStruct struct {
 	ComponentName    string                 `json:"component_name,omitempty"`
 	Cluster          int                    `json:"cluster,omitempty"`
 	Description      string                 `json:"description,omitempty"`
-	Name             string                 `json:"name,omitempty"`
-	ResourceID       string                 `json:"resource_id,omitempty"`
-	Status           string                 `json:"status,omitempty"`
 	RequestID        string                 `json:"request_id,omitempty"`
 	RequestState     string                 `json:"request_state,omitempty"`
-	ResourceType     string                 `json:"resource_type,omitempty"`
+	ResourceState    []ResourceState        `json:"resource_state,omitempty"`
 	Configuration    map[string]interface{} `json:"configuration,omitempty"`
-	ResourceState    map[string]interface{} `json:"resource_state,omitempty"`
-	DateCreated      string                 `json:"last_created,omitempty"`
-	LastUpdated      string                 `json:"last_updated,omitempty"`
 	ParentResourceID string                 `json:"parent_resource_id,omitempty"`
 	IPAddress        string                 `json:"ip_address,omitempty"`
+}
+
+// ResourceState - structure representing the resource_state
+type ResourceState struct {
+	ResourceID   string                 `json:"resource_id,omitempty"`
+	Description  string                 `json:"description,omitempty"`
+	Status       string                 `json:"status,omitempty"`
+	State        map[string]interface{} `json:"state,omitempty"`
+	DateCreated  string                 `json:"date_created,omitempty"`
+	LastUpdated  string                 `json:"last_updated,omitempty"`
+	Name         string                 `json:"name,omitempty"`
+	ResourceType string                 `json:"resource_type,omitempty"`
+	IPAddress    string                 `json:"ip_address,omitempty"`
 }
 
 // RequestResponse is the response structure of any request
@@ -63,8 +70,9 @@ type BusinessGroup struct {
 
 // RequestResourceView - resource view of a provisioned request
 type RequestResourceView struct {
-	Content []interface{} `json:"content,omitempty"`
-	Links   []interface{} `json:"links,omitempty"`
+	Content  []interface{} `json:"content,omitempty"`
+	Links    []interface{} `json:"links,omitempty"`
+	MetaData Metadata      `json:"metadata,omitempty"`
 }
 
 // Resources - Retrieves the resources that were provisioned as a result of a given request.
@@ -195,8 +203,9 @@ type EntitledCatalogItemViews struct {
 
 // Metadata - Metadata  used to store metadata of resource list response
 type Metadata struct {
-	Size          int `json:"size"`
-	TotalElements int `json:"totalElements"`
-	TotalPages    int `json:"totalPages"`
-	Number        int `json:"number"`
+	Size          int `json:"size,omitempty"`
+	TotalElements int `json:"totalElements,omitempty"`
+	TotalPages    int `json:"totalPages,omitempty"`
+	Number        int `json:"number,omitempty"`
+	Offset        int `json:"offset,omitempty"`
 }

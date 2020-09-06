@@ -142,7 +142,7 @@ func TestGetRequestResourceView(t *testing.T) {
 	url := client.BuildEncodedURL(path, nil)
 	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, deploymentStateResponse))
 
-	resourceView, err := client.GetRequestResourceView(mockRequestID)
+	resourceView, err := client.GetRequestResourceView(mockRequestID, 1)
 	utils.AssertNilError(t, err)
 	utils.AssertNotNil(t, resourceView)
 
@@ -151,7 +151,7 @@ func TestGetRequestResourceView(t *testing.T) {
 	httpmock.Reset()
 	httpmock.RegisterResponder("GET", url,
 		httpmock.NewStringResponder(20111, requestStatusErrResponse))
-	resourceView, err = client.GetRequestResourceView(mockRequestID)
+	resourceView, err = client.GetRequestResourceView(mockRequestID, 1)
 	utils.AssertNotNilError(t, err)
 	utils.AssertNil(t, resourceView)
 }
