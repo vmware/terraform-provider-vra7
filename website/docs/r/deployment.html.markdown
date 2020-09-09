@@ -22,7 +22,6 @@ resource "vra7_deployment" "this" {
   catalog_item_name = "CentOS 7.0 x64"
   description = "this description"
   reason = "this reason"
-  lease_days = 10
 
   deployment_configuration = {
     "blueprint_custom_property" = "This is a blueprint custom property"
@@ -86,7 +85,7 @@ The following arguments are supported:
 
 ### resource_configuration ###
 
-This is a list of blocks that contains the machine resource level properties including the custom properties. Each resource_configuration block corresponds to a component in the blueprint/catalog_item. The sample blueprint has one vSphere machine resource/component called vSphereVM1. Properties of this machine can be specified in the config as shown in the example above. The properties like cpu, memory, storage, etc are generic machine properties and their is a custom property as well, called machine_property in the sample blueprint which is required at request time. There can be any number of machines and same format has to be followed to specify properties of other machines as well.All the properties that are required during request, must be specified in the config file.
+This is a list of blocks that contains the machine resource level properties including the custom properties. Each resource_configuration block maps to a component in the blueprint/catalog_item. The sample blueprint has one vSphere machine resource/component called vSphereVM1. Properties of this machine can be specified in the config as shown in the example above. The properties like cpu, memory, storage, etc are generic machine properties and their is a custom property as well, called machine_property in the sample blueprint which is required at request time. The cluster property can be used to specify the number of machines corresponding that component. All the properties that are required during request, must be specified in the config file.
 
 The following arguments for resource_configuration block are supported:
 
@@ -99,18 +98,22 @@ NOTE: To add an array property, refer to the security_tag value in example above
 
 #### Attribute Reference
 
+* `instances` - List of the detailed state/view of the machine resources/instances/VMs within the deployment. This is a nested schema, discussed below
+* `parent_resource_id` - ID of the deployment of which this machine is a part of
+* `request_id` - ID of the catalog item request
+* `request_state` - Current state of the request. It can be FAILED, IN_PROGRESS, SUCCESSFUL, etc.
+
+### instances ###
+
 * `resource_id` - ID of the machine resource
 * `name` - Name of the resource
 * `description` - Description of the resource
-* `resource_state` - The detailed state/view of the machine resources within the deployment
-* `parent_resource_id` - ID of the deployment of which this machine is a part of
 * `ip_address` - IP address of the machine
-* `request_id` - ID of the catalog item request
-* `request_state` - Current state of the request. It can be FAILED, IN_PROGRESS, SUCCESSFUL, etc.
 * `resource_type` - Type of resource. It can be a machine resource type (Infrastructure.Virtual) or a deployment type (composition.resource.type.deployment), etc.
 * `status` - Status of the machine. It can be On, Off, Unprovisioned, etc.
 * `date_created` - The date when the resource was created.
-* `last_updated` - The date when the resource was last updated after Day 2 operations. 
+* `last_updated` - The date when the resource was last updated after Day 2 operations.
+* `properties` - Map of the instance/VM properties fetched from the deployment
 
 
 ### deployment_configuration ###

@@ -109,7 +109,7 @@ resource_configuration {
 ```
 * `_cluster` is added as a property in the schema. It can be modified for Scale In/Scale Out Day 2 actions
 * Support for deployemnt and resource properties of type array of strings in the blocks deployment_configuration as well as configuration under resource_configuration respectively as shown in the example below.
-* `ip_address` need not be added in the main.tf. It can be accessed from the state file. It is added as a property in the resource_configuration schema. Please refer to the documentation.
+* `ip_address` need not be added in the main.tf. It can be accessed from the state file. It is added as a property in the resource_configuration -> instances schema. Please refer to the documentation.
 
 ### The new main.tf file would look as follows:
 
@@ -175,6 +175,69 @@ resource "vra7_deployment" "this" {
     }
 }
 ```
+
+## Outputs
+
+The resource_configuration block has an instances block that is a list of all the instances/VMs corresponding to a component. The instance list size is nothing but the custer size.
+
+For example, after the deployment is created using the above config file, the resource_configuration list size will be 3.
+And the instances list size in the resource configuration map corresonding to the component "Windows" will be 2. This is because the cluster size is 2 and it creates 2 VMs with that configuration.
+
+Sample outputs:
+
+output "ip_address" {
+    value = vra7_deployment.this[*].resource_configuration[*].instances[*].properties.ip_address
+}
+
+output "component" {
+    value = vra7_deployment.this[*].resource_configuration[*].component_name
+}
+
+output "vm_name" {
+    value = vra7_deployment.this[*].resource_configuration[*].instances[*].properties.name
+}
+
+Expected sample outputs (based on the above main.tf, ip_address and vm_names are mock data below):
+
+ip_address = [
+  [
+    [
+      "10.xxx.xxx.xxx",
+      "10.xxx.xxx.xxx",
+    ],
+    [
+      "10.xxx.xxx.xxx"
+    ],
+    [
+      "10.xxx.xxx.xxx"
+    ],
+  ],
+]
+
+
+component = [
+  [
+    "Windows",
+    "Linux",
+    "http",
+  ],
+]
+
+vm_name = [
+  [
+    [
+      "Windows-machine1-2048",
+      "Windows-machine2-2049",
+    ],
+    [
+      "Linux-machine1-2050",
+    ],
+    [
+      "http-machine1-2051",
+    ],
+  ],
+]
+
 
 ## Import vra7_deployment
 
