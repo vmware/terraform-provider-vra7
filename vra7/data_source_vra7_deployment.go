@@ -2,7 +2,6 @@ package vra7
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/vmware/terraform-provider-vra7/sdk"
@@ -49,7 +48,6 @@ func dataSourceVra7Deployment() *schema.Resource {
 			"resource_configuration": resourceConfigurationSchema(false),
 			"lease_days": {
 				Type:     schema.TypeInt,
-				Computed: true,
 				Optional: true,
 			},
 			"name": {
@@ -121,8 +119,8 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 		rMap := resource.(map[string]interface{})
 		resourceType := rMap["resourceType"].(string)
 		name := rMap["name"].(string)
-		dateCreated := rMap["dateCreated"].(string)
-		lastUpdated := rMap["lastUpdated"].(string)
+		dateCreated := ConvertToDateTime(rMap["dateCreated"].(string))
+		lastUpdated := ConvertToDateTime(rMap["lastUpdated"].(string))
 		resourceID := rMap["resourceId"].(string)
 		requestID := rMap["requestId"].(string)
 		requestState := rMap["requestState"].(string)
@@ -160,20 +158,12 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 		} else if resourceType == sdk.DeploymentResourceType {
 
 			leaseMap := rMap["lease"].(map[string]interface{})
-			leaseStart := leaseMap["start"].(string)
+			leaseStart := ConvertToDateTime(leaseMap["start"].(string))
 			d.Set("lease_start", leaseStart)
 			// if the lease never expires, the end date will be null
 			if leaseMap["end"] != nil {
-				leaseEnd := leaseMap["end"].(string)
+				leaseEnd := ConvertToDateTime(leaseMap["end"].(string))
 				d.Set("lease_end", leaseEnd)
-				// the lease_days are calculated from the current time and lease_end dates as the resourceViews API does not return that information
-				currTime, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-				endTime, _ := time.Parse(time.RFC3339, leaseEnd)
-				diff := endTime.Sub(currTime)
-				d.Set("lease_days", int(diff.Hours()/24))
-				// end
-			} else {
-				d.Set("lease_days", nil) // set lease days to nil if lease_end is nil
 			}
 
 			d.Set("catalog_item_id", rMap["catalogItemId"].(string))

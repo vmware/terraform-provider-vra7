@@ -67,7 +67,8 @@ The following arguments are supported:
 * `reasons` - (Optional) Reasons for requesting the deployment.
 * `deployment_configuration` - (Optional) The configuration of the deployment from the catalog item. All blueprint custom properties including property groups can be added to this block. This property is discussed in detail below.
 * `resource_configuration` - (Optional) The configuration of the individual components from the catalog item. This property is discussed in detail below.
-* `lease_days` - (Optional) Number of lease days remaining for the deployment. NOTE: lease_days 0 means the lease never expires.
+* `lease_days` - (Optional) Number of lease days when creating the deployment resource for the first time. NOTE: lease_days 0 means the lease never expires.
+* `lease_end` - (Optional) End date of the lease in YYYY-MM-DD HH:MM or YYYY-MM-DD format in GMT time zone. It accepts time in 24 hour clock format. To update the lease expiration time, update lease_end and not lease_days.
 * `wait_timeout` - (Optional) Wait time out for the request. If the request is not completed within the timeout period, do a terraform refresh later to check the status of the request. 
 
 ## Attribute Reference
@@ -75,7 +76,6 @@ The following arguments are supported:
 * `deployment_id` - The resource id of the deployment.
 * `name` - The name of the deployment.
 * `lease_start` - Start date of the lease.
-* `lease_end` - End date of the lease.
 * `request_status` - The status of the catalog item request.
 * `date_created` - The date when the deployment was created.
 * `last_updated` - The date when the deployment was last updated after Day 2 operations.
