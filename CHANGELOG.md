@@ -1,4 +1,15 @@
-## 1.0.4 (Unreleased)
+## 2.0.1 (Unreleased)
+
+## 2.0.0 (Sept 10, 2020)
+
+BUG FIXES:
+
+* Drift in state file [#85](https://github.com/vmware/terraform-provider-vra7/issues/85))
+
+IMPROVEMENTS:
+
+* Modified the schema to update the state file with more organized information about the deployment resource [#88](https://github.com/vmware/terraform-provider-vra7/pull/88))
+
 
 ## 1.0.3 (Aug 31, 2020)
 
