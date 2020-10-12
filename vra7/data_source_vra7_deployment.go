@@ -146,14 +146,6 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 			lastUpdated := rMap["lastUpdated"].(string)
 			resourceID := rMap["resourceId"].(string)
 			name := rMap["name"].(string)
-			description := ""
-			status := ""
-			if _, ok := rMap["status"]; !ok {
-				status = rMap["status"].(string)
-			}
-			if _, ok := rMap["description"]; !ok {
-				description = rMap["description"].(string)
-			}
 
 			// if the resource type is VMs, update the resource_configuration attribute
 			if resourceType == sdk.InfrastructureVirtual {
@@ -168,9 +160,14 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 					instance.ResourceID = resourceID
 					instance.ResourceType = resourceType
 					instance.Properties = data
-					instance.Description = description
-					instance.Status = status
 					componentName := data["Component"].(string)
+
+					if _, ok := rMap["status"]; !ok {
+						instance.Status = rMap["status"].(string)
+					}
+					if _, ok := rMap["description"]; !ok {
+						instance.Description = rMap["description"].(string)
+					}
 
 					// checking to see if a resource configuration struct exists for the component name
 					// if yes, then add another instance to the instances list of that resource config struct
@@ -203,8 +200,14 @@ func dataSourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) erro
 				d.Set("owners", rMap["owners"].([]interface{}))
 				d.Set("name", name)
 				d.Set("businessgroup_id", rMap["businessGroupId"].(string))
-				d.Set("description", description)
-				d.Set("request_status", status)
+
+				if _, ok := rMap["status"]; !ok {
+					d.Set("request_status", rMap["status"].(string))
+				}
+				if _, ok := rMap["description"]; !ok {
+					d.Set("description", rMap["description"].(string))
+				}
+
 				leaseMap := rMap["lease"].(map[string]interface{})
 				leaseStart := leaseMap["start"].(string)
 				d.Set("lease_start", leaseStart)

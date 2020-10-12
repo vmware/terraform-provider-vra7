@@ -17,8 +17,7 @@ func resourceConfigurationSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"component_name": {
 					Type:     schema.TypeString,
-					Optional: true,
-					Computed: true,
+					Required: true,
 				},
 				"configuration": {
 					Type:     schema.TypeMap,

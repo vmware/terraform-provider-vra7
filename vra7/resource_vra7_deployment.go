@@ -65,17 +65,10 @@ func resourceVra7Deployment() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 				Optional: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return true
-				},
 			},
 			"reasons": {
 				Type:     schema.TypeString,
-				Computed: true,
 				Optional: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return true
-				},
 			},
 			"businessgroup_id": {
 				Type:     schema.TypeString,
@@ -262,6 +255,8 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 			log.Info("Starting Change Lease action on the deployment with id %v. The lease will be extended by %v days.", p.DeploymentID, p.Lease)
 			_ = ReplaceValueInRequestTemplate(
 				resourceActionTemplate.Data, "provider-ExpirationDate", extendLeaseTo)
+			resourceActionTemplate.Description = d.Get("description").(string)
+			resourceActionTemplate.Reasons = d.Get("reasons").(string)
 			requestID, err := vraClient.PostResourceAction(p.DeploymentID, changeLeaseActionID, resourceActionTemplate)
 			if err != nil {
 				log.Errorf("The change lease request failed with error: %v ", err)
@@ -285,6 +280,7 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 		for _, newResourceConfig := range newResourceConfigList {
 			index, oldResourceConfig := GetResourceConfigurationByComponent(oldResourceConfigList, newResourceConfig.ComponentName)
 			if index != -1 {
+
 				deploymentResourceActions, err := vraClient.GetResourceActions(p.DeploymentID)
 				if err != nil {
 					return err
@@ -299,6 +295,8 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 						if err != nil {
 							return err
 						}
+						resourceActionTemplate.Description = d.Get("description").(string)
+						resourceActionTemplate.Reasons = d.Get("reasons").(string)
 						// get the map from the action template corresponding to the key which is the component name
 						actionTemplateDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, newResourceConfig.ComponentName)
 						// update the template with the new cluster size
@@ -326,6 +324,8 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 						if err != nil {
 							return err
 						}
+						resourceActionTemplate.Description = d.Get("description").(string)
+						resourceActionTemplate.Reasons = d.Get("reasons").(string)
 						// get the map from the action template corresponding to the key which is the component name
 						actionTemplateDataMap := GetActionTemplateDataByComponent(resourceActionTemplate.Data, newResourceConfig.ComponentName)
 						// update the template with the new cluster size
@@ -365,6 +365,8 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 					if vmResourceActionsMap[sdk.Reconfigure] != "" {
 						reconfigureActionID := vmResourceActionsMap[sdk.Reconfigure]
 						resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(instance.ResourceID, reconfigureActionID)
+						resourceActionTemplate.Description = d.Get("description").(string)
+						resourceActionTemplate.Reasons = d.Get("reasons").(string)
 						configChanged := false
 						actionTemplateDataMap := resourceActionTemplate.Data
 						// checking if any property has changed in the new configuration
@@ -397,6 +399,12 @@ func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) erro
 			}
 		}
 	}
+
+	// the description and reasons cannot be updated without any valid day-2 opearation
+	if (d.HasChange("description") || d.HasChange("reasons")) && (!d.HasChange("lease_days") && !d.HasChange("resource_configuration")) {
+		return fmt.Errorf("Updating only description and/or reasons is not supported. You can update them during any supported Day-2 actions")
+	}
+
 	log.Info("Finished updating the resource vra7_deployment with request id %s", d.Id())
 	return resourceVra7DeploymentRead(d, meta)
 }
@@ -453,14 +461,6 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 			lastUpdated := rMap["lastUpdated"].(string)
 			resourceID := rMap["resourceId"].(string)
 			name := rMap["name"].(string)
-			description := ""
-			status := ""
-			if _, ok := rMap["status"]; !ok {
-				status = rMap["status"].(string)
-			}
-			if _, ok := rMap["description"]; !ok {
-				description = rMap["description"].(string)
-			}
 
 			// if the resource type is VMs, update the resource_configuration attribute
 			if resourceType == sdk.InfrastructureVirtual {
@@ -475,9 +475,15 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 					instance.ResourceID = resourceID
 					instance.ResourceType = resourceType
 					instance.Properties = data
-					instance.Description = description
-					instance.Status = status
 					componentName := data["Component"].(string)
+
+					if _, ok := rMap["description"]; !ok {
+						instance.Description = rMap["description"].(string)
+					}
+
+					if _, ok := rMap["status"]; !ok {
+						instance.Status = rMap["status"].(string)
+					}
 
 					// checking to see if a resource configuration struct exists for the component name
 					// if yes, then add another instance to the instances list of that resource config struct
@@ -513,11 +519,18 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 				d.Set("owners", rMap["owners"].([]interface{}))
 				d.Set("name", name)
 				d.Set("businessgroup_id", rMap["businessGroupId"].(string))
-				d.Set("description", description)
-				d.Set("request_status", status)
 				leaseMap := rMap["lease"].(map[string]interface{})
 				leaseStart := leaseMap["start"].(string)
 				d.Set("lease_start", leaseStart)
+
+				if _, ok := rMap["description"]; !ok {
+					d.Set("description", rMap["description"].(string))
+				}
+
+				if _, ok := rMap["status"]; !ok {
+					d.Set("request_status", rMap["status"].(string))
+				}
+
 				// if the lease never expires, the end date will be null
 				if leaseMap["end"] != nil {
 					leaseEnd := leaseMap["end"].(string)
