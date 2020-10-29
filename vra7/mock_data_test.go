@@ -1,14 +1,14 @@
 package vra7
 
 var (
-	validAuthResponse = `{  
+	validAuthResponse = `{
 		"expires":"2019-02-26T03:32:35.000Z",
 		"id":"MTU1MTEyMzE1NTc5ODpiYTZkYjdhNjZlNGNkYjZmZTBiMjp0ZW5hbnQ6cWV1c2VybmFtZTpmcml0ekBjb2tlLnNxYS1ob3Jpem9uLmxvY2FsZXhwaXJhdGlvbjoxNTUxMTUxOTU1MDAwOmMyNGVjNTFiNzE1OTJhZDZjNTljMTUwMDkxMjcyNzUyZDkzNzQ0ODRkMTVlZGFhNWM0MDhjYmQ3YTM2MTljZGNiNjM3MjM1NmY1MzZlYTk1YzUyMGZiZDVjMTkzMzg3YjQzZmMwNmNlMGI5YjJkZmIwNzhlZGU2NzdiNTk3MWFk",
 		"tenant":"qe"
 	 }`
 
-	errorAuthResponse = `{  
-		"errors":[  
+	errorAuthResponse = `{
+		"errors":[
 		   {  
 			  "code":90135,
 			  "source":null,
