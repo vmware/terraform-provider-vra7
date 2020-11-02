@@ -140,7 +140,11 @@ func (c *APIClient) BuildEncodedURL(relativePath string, queryParameters map[str
 
 	queryURL.Path += relativePath
 
-	parameters := url.Values{}
+	parameters, err := url.ParseQuery(queryURL.RawQuery)
+	if err != nil {
+		log.Error("Error %v ", err)
+	}
+
 	if queryParameters != nil {
 		for key, value := range queryParameters {
 			parameters.Add(key, value)
