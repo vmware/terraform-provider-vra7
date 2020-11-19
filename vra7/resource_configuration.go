@@ -36,16 +36,7 @@ func resourceConfigurationSchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
-				"ip_address": {
-					Type:     schema.TypeString,
-					Computed: true,
-					Removed:  "The ip_address is removed from here and available under instances",
-				},
 				"request_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"request_state": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -80,16 +71,7 @@ func dataResourceConfigurationSchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
-				"ip_address": {
-					Type:     schema.TypeString,
-					Computed: true,
-					Removed:  "The ip_address is removed from here and available under instances",
-				},
 				"request_id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"request_state": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -125,18 +107,6 @@ func instancesSchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
-				"status": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"date_created": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"last_updated": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
 				"properties": {
 					Type:     schema.TypeMap,
 					Computed: true,
@@ -161,10 +131,7 @@ func expandResourceConfiguration(rConfigurations []interface{}) []sdk.ResourceCo
 				Name:         ins["name"].(string),
 				IPAddress:    ins["ip_address"].(string),
 				ResourceType: ins["resource_type"].(string),
-				Status:       ins["status"].(string),
 				Description:  ins["description"].(string),
-				DateCreated:  ins["date_created"].(string),
-				LastUpdated:  ins["last_updated"].(string),
 				Properties:   ins["properties"].(map[string]interface{}),
 			}
 			instances = append(instances, instance)
@@ -175,7 +142,6 @@ func expandResourceConfiguration(rConfigurations []interface{}) []sdk.ResourceCo
 			Cluster:          configMap["cluster"].(int),
 			ParentResourceID: configMap["parent_resource_id"].(string),
 			RequestID:        configMap["request_id"].(string),
-			RequestState:     configMap["request_state"].(string),
 			Instances:        instances,
 		}
 		configs = append(configs, rConfig)
@@ -195,9 +161,7 @@ func flattenResourceConfigurations(resourceConfigList []sdk.ResourceConfiguratio
 			instanceMap := make(map[string]interface{})
 			instanceMap["resource_id"] = instance.ResourceID
 			instanceMap["resource_type"] = instance.ResourceType
-			instanceMap["status"] = instance.Status
 			instanceMap["name"] = instance.Name
-			instanceMap["date_created"] = instance.DateCreated
 			instanceMap["ip_address"] = instance.IPAddress
 			propMap, configurationMap := parseDataMap(instance.Properties, config.Configuration)
 			instanceMap["properties"] = propMap
@@ -208,7 +172,6 @@ func flattenResourceConfigurations(resourceConfigList []sdk.ResourceConfiguratio
 		helper["component_name"] = config.ComponentName
 		helper["request_id"] = config.RequestID
 		helper["parent_resource_id"] = config.ParentResourceID
-		helper["request_state"] = config.RequestState
 		helper["cluster"] = clusterCountMap[config.ComponentName]
 
 		rConfigs = append(rConfigs, helper)

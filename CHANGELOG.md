@@ -1,4 +1,21 @@
-## 2.0.1 (Unreleased)
+## 3.0.1 (Unreleased)
+
+## 3.0.0 (Nov 20, 2020)
+
+BUG FIXES:
+
+* Scale out/in not working due to drift in Terraform state file [#95](https://github.com/vmware/terraform-provider-vra7/issues/95))
+
+* lease_end field shows incorrect value and no change in lease_days always shows a change in plan [#101](https://github.com/vmware/terraform-provider-vra7/issues/101))
+
+NOTE:
+From this release, we will only support users on vRA 7.5 and above. vRA 7.4 users should stay on the previous release v2.0.1 for the provider to work.
+
+## 2.0.1 (Oct 12, 2020)
+
+BUG FIXES:
+
+* description and reason are not being set [#90](https://github.com/vmware/terraform-provider-vra7/issues/90))
 
 ## 2.0.0 (Sept 10, 2020)
 

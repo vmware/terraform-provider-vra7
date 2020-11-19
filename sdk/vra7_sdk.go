@@ -28,6 +28,7 @@ const (
 	GetActionTemplateAPI        = PostActionTemplateAPI + "/template"
 	GetRequestResourceViewAPI   = ConsumerRequests + "/" + "%s" + "/resourceViews"
 	RequestTemplateAPI          = EntitledCatalogItems + "/" + "%s" + "/requests/template"
+	GetDeploymentAPI            = Consumer + "/deployments/%s"
 
 	InProgress             = "IN_PROGRESS"
 	Successful             = "SUCCESSFUL"
@@ -312,4 +313,55 @@ func (c *APIClient) PostResourceAction(resourceID, actionID string, resourceActi
 	requestID := requestURL[i+1:]
 
 	return requestID, nil
+}
+
+// GetDeploymentIDFromRequest - get depoyment id from request id
+func (c *APIClient) GetDeploymentIDFromRequest(requestID string) (string, error) {
+	currentPage := 1
+	totalPages := 1
+	deploymentID := ""
+
+	for currentPage <= totalPages {
+		requestResourceView, err := c.GetRequestResourceView(requestID, currentPage)
+
+		if requestResourceView != nil && len(requestResourceView.Content) == 0 {
+			return "", fmt.Errorf("The resource cannot be found")
+		}
+
+		if err != nil || len(requestResourceView.Content) == 0 {
+			return "", fmt.Errorf("Resource view failed to load with the error %v", err)
+		}
+
+		currentPage = requestResourceView.MetaData.Number + 1
+		totalPages = requestResourceView.MetaData.TotalPages
+
+		for _, resource := range requestResourceView.Content {
+			// map containing the content of a resourceView response
+			rMap := resource.(map[string]interface{})
+			resourceType := rMap["resourceType"].(string)
+			if resourceType == DeploymentResourceType {
+				deploymentID = rMap["resourceId"].(string)
+				break
+			}
+		}
+	}
+	return deploymentID, nil
+}
+
+// GetDeployment get the deployment with deploymentId
+func (c *APIClient) GetDeployment(deploymentID string) (*Deployment, error) {
+	deploymentAPIPath := fmt.Sprintf(GetDeploymentAPI, deploymentID)
+	log.Info("Call GET to fetch the deployment %v ", deploymentAPIPath)
+	url := c.BuildEncodedURL(deploymentAPIPath, nil)
+	resp, respErr := c.Get(url, nil)
+	if respErr != nil {
+		return nil, respErr
+	}
+
+	var deployment Deployment
+	unmarshallErr := utils.UnmarshalJSON(resp.Body, &deployment)
+	if unmarshallErr != nil {
+		return nil, unmarshallErr
+	}
+	return &deployment, nil
 }

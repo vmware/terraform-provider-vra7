@@ -17,12 +17,13 @@ Provides a VMware vRA7 deployment resource. This can be used to deploy vRA7 cata
 You can refer to the sample blueprint ([here](https://github.com/vmware/terraform-provider-vra7/tree/master/website/docs/r)) to understand how it is translated to following the terraform config
 
 ```hcl
+
 resource "vra7_deployment" "this" {
   count             = 1
   catalog_item_name = "CentOS 7.0 x64"
   description = "this description"
-  reason = "this reason"
-
+  reasons = "this reason"
+  lease_days = 10
   deployment_configuration = {
     "blueprint_custom_property" = "This is a blueprint custom property"
   }
@@ -52,7 +53,96 @@ resource "vra7_deployment" "this" {
     }
   }
 }
+
 ```
+
+To scale in and/or scale out the deployment created by the above configuration, change the cluster size within resource_configuration. For instance, scaling in Linux 1 and scaling out Linux 2
+
+```hcl
+
+resource_configuration  {
+    component_name = "Linux 1"
+    cluster = 1
+    configuration = {
+      cpu = 2
+      memory = 2048
+      custom_property = "VM custom property"
+      security_tag = <<EOF
+        [
+          "dev_sg",
+          "prod_sg"
+        ]
+        EOF
+    }
+  }
+
+  resource_configuration  {
+    component_name = "Linux 2"
+    cluster = 3
+    configuration = {
+      cpu = 2
+      memory = 1024
+      storage = 8
+    }
+  }
+
+```
+
+To change lease, add expiry_date in your config. It is already present in the state file after the deployment is created. Refer state file for format. For instance, if the expiry_date after initial deployment in the state file was "2020-11-20T20:29:37.845Z", you can modify it as follows:
+
+```hcl
+
+resource "vra7_deployment" "this" {
+  count             = 1
+  catalog_item_name = "CentOS 7.0 x64"
+  description = "this description"
+  reasons = "this reason"
+  lease_days = 10
+  expiry_date = "2020-11-25T20:29:37.845Z"
+  deployment_configuration = {
+    "blueprint_custom_property" = "This is a blueprint custom property"
+  }
+
+  // resource_configuration blocks as above examples
+  resource_configuration  {}
+  resource_configuration  {}
+}
+
+```
+
+To reconfigure, change/add properties inside configuration block of resource_configuration block. For instance, in the initial deployment, to change cpu to 4 for both clusters, do the following:
+
+
+```hcl
+
+resource_configuration  {
+    component_name = "Linux 1"
+    cluster = 1
+    configuration = {
+      cpu = 4
+      memory = 2048
+      custom_property = "VM custom property"
+      security_tag = <<EOF
+        [
+          "dev_sg",
+          "prod_sg"
+        ]
+        EOF
+    }
+  }
+
+  resource_configuration  {
+    component_name = "Linux 2"
+    cluster = 3
+    configuration = {
+      cpu = 4
+      memory = 1024
+      storage = 8
+    }
+  }
+
+```
+
 
 ## Argument Reference
 
@@ -66,19 +156,16 @@ The following arguments are supported:
 * `reasons` - (Optional) Reasons for requesting the deployment.
 * `deployment_configuration` - (Optional) The configuration of the deployment from the catalog item. All blueprint custom properties including property groups can be added to this block. This property is discussed in detail below.
 * `resource_configuration` - (Optional) The configuration of the individual components from the catalog item. This property is discussed in detail below.
-* `lease_days` - (Optional) Number of lease days remaining for the deployment. NOTE: lease_days 0 means the lease never expires.
+* `lease_days` - (Optional) Number of lease days remaining for the deployment. NOTE: If this is not provided, the default lease_days in the catalog item will be configured. lease_days 0 means the lease never expires.
+* `expiry_date` - (Optional) The date when the deployment will expire. To change lease, modify this field in main.tf. It has to be in the same format as in the state file. For e.g., "2020-11-25T20:29:37.845Z".
 * `wait_timeout` - (Optional) Wait time out for the request. If the request is not completed within the timeout period, do a terraform refresh later to check the status of the request. 
 
 ## Attribute Reference
 
 * `deployment_id` - The resource id of the deployment.
 * `name` - The name of the deployment.
-* `lease_start` - Start date of the lease.
-* `lease_end` - End date of the lease.
 * `request_status` - The status of the catalog item request.
-* `date_created` - The date when the deployment was created.
-* `last_updated` - The date when the deployment was last updated after Day 2 operations.
-* `tenant_id` - The id of the tenant.
+* `created_date` - The date when the deployment was created.
 * `owners` - The owners of the deployment.
 
 ## Nested Blocks
@@ -101,7 +188,6 @@ NOTE: To add an array property, refer to the security_tag value in example above
 * `instances` - List of the detailed state/view of the machine resources/instances/VMs within the deployment. This is a nested schema, discussed below
 * `parent_resource_id` - ID of the deployment of which this machine is a part of
 * `request_id` - ID of the catalog item request
-* `request_state` - Current state of the request. It can be FAILED, IN_PROGRESS, SUCCESSFUL, etc.
 
 ### instances ###
 
@@ -110,9 +196,6 @@ NOTE: To add an array property, refer to the security_tag value in example above
 * `description` - Description of the resource
 * `ip_address` - IP address of the machine
 * `resource_type` - Type of resource. It can be a machine resource type (Infrastructure.Virtual) or a deployment type (composition.resource.type.deployment), etc.
-* `status` - Status of the machine. It can be On, Off, Unprovisioned, etc.
-* `date_created` - The date when the resource was created.
-* `last_updated` - The date when the resource was last updated after Day 2 operations.
 * `properties` - Map of the instance/VM properties fetched from the deployment
 
 

@@ -190,7 +190,7 @@ func TestGetResourceActionTemplate(t *testing.T) {
 	// test for delete action template
 	getActionTemplatePath := fmt.Sprintf(GetActionTemplateAPI, mockResourceID, mockActionID)
 	url := client.BuildEncodedURL(getActionTemplatePath, nil)
-	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, deleteActionTemplateResponse))
+	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, reconfigureActionTemplateResponse))
 
 	actionTemplte, err := client.GetResourceActionTemplate(mockResourceID, mockActionID)
 	utils.AssertNilError(t, err)
@@ -220,5 +220,28 @@ func TestGetResourceActionTemplate(t *testing.T) {
 	actionTemplte, err = client.GetResourceActionTemplate(mockResourceID, mockActionID)
 	utils.AssertNotNilError(t, err)
 	utils.AssertNil(t, actionTemplte)
+}
 
+func TestGetDeployment(t *testing.T) {
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	mockDeploymentID := "226568c7-b5c8-4818-82b4-f8b0347985c2"
+
+	// test for delete action template
+	getDeploymentPath := fmt.Sprintf(GetDeploymentAPI, mockDeploymentID)
+	url := client.BuildEncodedURL(getDeploymentPath, nil)
+	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, deploymentResponse))
+
+	deployment, err := client.GetDeployment(mockDeploymentID)
+	utils.AssertNilError(t, err)
+	utils.AssertNotNil(t, deployment)
+
+	// invalid resource id
+	mockDeploymentID = "gd78tegd-0e737egd-jhdg"
+	httpmock.Reset()
+	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(10101, " "))
+	deployment, err = client.GetDeployment(mockDeploymentID)
+	utils.AssertNilError(t, err)
+	utils.AssertNil(t, deployment)
 }

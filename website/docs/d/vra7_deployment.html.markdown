@@ -45,12 +45,9 @@ The following arguments are supported:
 * `resource_configuration` - The configuration of the individual components from the catalog item. This property is discussed in detail below.
 * `lease_days` - Number of lease days remaining for the deployment. NOTE: lease_days 0 means the lease never expires.
 * `name` - The name of the deployment.
-* `lease_start` - Start date of the lease.
-* `lease_end` - End date of the lease.
 * `request_status` - The status of the catalog item request.
-* `date_created` - The date when the deployment was created.
-* `last_updated` - The date when the deployment was last updated after Day 2 operations.
-* `tenant_id` - The id of the tenant.
+* `created_date` - The date when the deployment was created.
+* `expiry_date` - The date when the deployment will expire.
 * `owners` - The owners of the deployment.
 
 ## Nested Blocks
@@ -64,19 +61,21 @@ The following arguments for resource_configuration block are supported:
 #### Attribute Reference
 
 * `component_name` - The name of the component/machine resource as in the blueprint/catalog_item
-* `resource_state` - The detailed state/view of the machine resources within the deployment
 * `cluster` - Cluster size for this machine resource
+* `parent_resource_id` - ID of the deployment of which this machine is a part of
+* `request_id` - ID of the catalog item request
+* `instances` - List of the detailed state/view of the machine resources/instances/VMs within the deployment. This is a nested schema, discussed below
+
+#### instance ####
+
+An instance is a VM in the list of VMs under a resource_configuration. For instance, for a component (say vSphere1), a resource_configuration block is added in main.tf. If the cluster size is 2, it will create 2 VMs and the instances will have both the VMs in the instances list.
+
 * `resource_id` - ID of the machine resource
 * `name` - Name of the resource
 * `description` - Description of the resource
-* `parent_resource_id` - ID of the deployment of which this machine is a part of
 * `ip_address` - IP address of the machine
-* `request_id` - ID of the catalog item request
-* `request_state` - Current state of the request. It can be FAILED, IN_PROGRESS, SUCCESSFUL, etc.
 * `resource_type` - Type of resource. It can be a machine resource type (Infrastructure.Virtual) or a deployment type (composition.resource.type.deployment), etc.
-* `status` - Status of the machine. It can be On, Off, Unprovisioned, etc.
-* `date_created` - The date when the resource was created.
-* `last_updated` - The date when the resource was last updated after Day 2 operations. 
+* `properties` - Map of the instance/VM properties fetched from the deployment
 
 
 ### deployment_configuration ###
