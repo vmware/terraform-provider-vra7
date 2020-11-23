@@ -190,7 +190,7 @@ func TestGetResourceActionTemplate(t *testing.T) {
 	// test for delete action template
 	getActionTemplatePath := fmt.Sprintf(GetActionTemplateAPI, mockResourceID, mockActionID)
 	url := client.BuildEncodedURL(getActionTemplatePath, nil)
-	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, reconfigureActionTemplateResponse))
+	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, deleteActionTemplateResponse))
 
 	actionTemplte, err := client.GetResourceActionTemplate(mockResourceID, mockActionID)
 	utils.AssertNilError(t, err)
