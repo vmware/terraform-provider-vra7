@@ -10,7 +10,6 @@ type ResourceConfigurationStruct struct {
 	Cluster          int                    `json:"cluster,omitempty"`
 	Description      string                 `json:"description,omitempty"`
 	RequestID        string                 `json:"request_id,omitempty"`
-	RequestState     string                 `json:"request_state,omitempty"`
 	Instances        []Instance             `json:"instances,omitempty"`
 	Configuration    map[string]interface{} `json:"configuration,omitempty"`
 	ParentResourceID string                 `json:"parent_resource_id,omitempty"`
@@ -207,4 +206,42 @@ type Metadata struct {
 	TotalPages    int `json:"totalPages,omitempty"`
 	Number        int `json:"number,omitempty"`
 	Offset        int `json:"offset,omitempty"`
+}
+
+// Deployment - Deployment struct
+type Deployment struct {
+	ID          string `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	CreatedDate string `json:"createdDate,omitempty"`
+	ExpiryDate  string `json:"expiryDate,omitempty"`
+	CatalogItem struct {
+		ID    string `json:"id,omitempty"`
+		Label string `json:"label,omitempty"`
+	} `json:"catalogItem,omitempty"`
+
+	Subtenant struct {
+		ID    string `json:"id,omitempty"`
+		Label string `json:"label,omitempty"`
+	} `json:"subtenant,omitempty"`
+
+	Components []DeploymentComponents `json:"components,omitempty"`
+	Owners     []Owner                `json:"owners,omitempty"`
+	Operations []Operation            `json:"operations,omitempty"`
+}
+
+// Owner - Owner of deployment
+type Owner struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+
+// DeploymentComponents - components of a deployment
+type DeploymentComponents struct {
+	ID          string                 `json:"id,omitempty"`
+	Name        string                 `json:"name,omitempty"`
+	Description string                 `json:"description,omitempty"`
+	Type        string                 `json:"type,omitempty"`
+	ParentID    string                 `json:"parentId,omitempty"`
+	Data        map[string]interface{} `json:"data,omitempty"`
 }
