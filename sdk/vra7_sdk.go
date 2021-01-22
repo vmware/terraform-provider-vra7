@@ -145,6 +145,22 @@ func (c *APIClient) GetBusinessGroupID(businessGroupName string, tenant string) 
 	if unmarshallErr != nil {
 		return "", unmarshallErr
 	}
+
+	if len(businessGroups.Content) == 0 {
+		path = path + "/membership"
+
+		membershipURL := c.BuildEncodedURL(path, nil)
+
+		resp, respErr := c.Get(membershipURL, nil)
+		if respErr != nil {
+			return "", respErr
+		}
+		unmarshallErr := utils.UnmarshalJSON(resp.Body, &businessGroups)
+		if unmarshallErr != nil {
+			return "", unmarshallErr
+		}
+	}
+
 	// BusinessGroups array will contain only one BusinessGroup element containing the BG
 	// with the name businessGroupName.
 	// Fetch the id of that
