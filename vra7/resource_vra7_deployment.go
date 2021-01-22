@@ -625,7 +625,7 @@ func readProviderConfiguration(d *schema.ResourceData, vraClient *sdk.APIClient)
 	}
 
 	// if catalog item name is provided, fetch the catalog item id
-	if len(providerSchema.CatalogItemName) > 0 {
+	if len(providerSchema.CatalogItemID) == 0 && len(providerSchema.CatalogItemName) > 0 {
 		id, err := vraClient.ReadCatalogItemByName(providerSchema.CatalogItemName)
 		if err != nil {
 			return &providerSchema, err
@@ -634,7 +634,7 @@ func readProviderConfiguration(d *schema.ResourceData, vraClient *sdk.APIClient)
 	}
 
 	// get the business group id from name
-	if len(providerSchema.BusinessGroupName) > 0 {
+	if len(providerSchema.BusinessGroupID) == 0 && len(providerSchema.BusinessGroupName) > 0 {
 		id, err := vraClient.GetBusinessGroupID(providerSchema.BusinessGroupName, vraClient.Tenant)
 		if err != nil {
 			return &providerSchema, err
