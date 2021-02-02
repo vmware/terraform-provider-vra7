@@ -1,4 +1,10 @@
+## 3.0.2 (Unreleased)
+
 ## 3.0.1 (Unreleased)
+
+BUG FIXES:
+
+* Unneccesary lookup of BusinessGroupId via Identity API [#103](https://github.com/vmware/terraform-provider-vra7/issues/103))
 
 ## 3.0.0 (Nov 20, 2020)
 
