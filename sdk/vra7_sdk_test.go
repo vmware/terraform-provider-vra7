@@ -28,12 +28,15 @@ func init() {
 func TestGetCatalogItemRequestTemplate(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
+	//register tokens mock
+	tokensPath := Tokens
+	tokensURL := client.BuildEncodedURL(tokensPath, nil)
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 
 	catalogItemID := "feaedf73-560c-4612-a573-41667e017691"
 
 	path := fmt.Sprintf(RequestTemplateAPI, catalogItemID)
 	url := client.BuildEncodedURL(path, nil)
-
 	httpmock.RegisterResponder("GET", url,
 		httpmock.NewStringResponder(200, requestTemplateResponse))
 
@@ -59,11 +62,14 @@ func TestReadCatalogItemNameByID(t *testing.T) {
 
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
+	//register tokens mock
+	tokensPath := Tokens
+	tokensURL := client.BuildEncodedURL(tokensPath, nil)
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 
 	catalogItemID := "e5dd4fba-45ed-4943-b1fc-7f96239286be"
 	path := fmt.Sprintf(EntitledCatalogItems+"/"+"%s", catalogItemID)
 	url := client.BuildEncodedURL(path, nil)
-
 	httpmock.RegisterResponder("GET", url,
 		httpmock.NewStringResponder(200, catalogItemResp))
 
@@ -79,10 +85,13 @@ func TestReadCatalogItemNameByID(t *testing.T) {
 func TestReadCatalogItemByName(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
+	//register tokens mock
+	tokensPath := Tokens
+	tokensURL := client.BuildEncodedURL(tokensPath, nil)
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 
 	url := client.BuildEncodedURL(EntitledCatalogItemViewsAPI, map[string]string{
 		"page": "1"})
-
 	httpmock.RegisterResponder("GET", url,
 		httpmock.NewStringResponder(200, entitledCatalogItemViewsResponse))
 
@@ -98,10 +107,13 @@ func TestGetBusinessGroupID(t *testing.T) {
 
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
+	//register tokens mock
+	tokensPath := Tokens
+	tokensURL := client.BuildEncodedURL(tokensPath, nil)
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 
 	path := Tenants + "/" + mockTenant + "/subtenants"
 	url := client.BuildEncodedURL(path, nil)
-
 	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, subTenantsResponse))
 
 	id, err := client.GetBusinessGroupID("Development", mockTenant)
@@ -112,10 +124,15 @@ func TestGetBusinessGroupID(t *testing.T) {
 func TestGetRequestStatus(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
+	//register tokens mock
+	tokensPath := Tokens
+	tokensURL := client.BuildEncodedURL(tokensPath, nil)
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 
 	mockRequestID := "adca9535-4a35-4981-8864-28643bd990b0"
 	path := fmt.Sprintf(ConsumerRequests+"/"+"%s", mockRequestID)
 	url := client.BuildEncodedURL(path, nil)
+
 	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, requestStatusResponse))
 
 	requestStatus, err := client.GetRequestStatus(mockRequestID)
@@ -136,10 +153,15 @@ func TestGetRequestStatus(t *testing.T) {
 func TestGetRequestResourceView(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
+	//register tokens mock
+	tokensPath := Tokens
+	tokensURL := client.BuildEncodedURL(tokensPath, nil)
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 
 	mockRequestID := "594bf7ec-c8d2-4a0d-8477-553ed987aa48"
 	path := fmt.Sprintf(GetRequestResourceViewAPI, mockRequestID)
 	url := client.BuildEncodedURL(path, nil)
+
 	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, deploymentStateResponse))
 
 	resourceView, err := client.GetRequestResourceView(mockRequestID, 1)
@@ -160,6 +182,10 @@ func TestGetRequestResources(t *testing.T) {
 
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
+	//auth
+	tokensPath := Tokens
+	tokensURL := client.BuildEncodedURL(tokensPath, nil)
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 
 	mockRequestID := "6ec160e5-41c5-4b1d-8ddc-e89c426957c6"
 	path := fmt.Sprintf(GetRequestResourcesAPI, mockRequestID)
@@ -183,13 +209,19 @@ func TestGetRequestResources(t *testing.T) {
 func TestGetResourceActionTemplate(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
+	//register tokens mock
+	tokensPath := Tokens
+	tokensURL := client.BuildEncodedURL(tokensPath, nil)
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 
 	mockResourceID := "0786a919-3545-408d-9091-cc8fe24e7790"
 	mockActionID := "1a22752b-31a9-462e-a38a-e42b60c08a78"
-
 	// test for delete action template
 	getActionTemplatePath := fmt.Sprintf(GetActionTemplateAPI, mockResourceID, mockActionID)
 	url := client.BuildEncodedURL(getActionTemplatePath, nil)
+	httpmock.RegisterResponder("POST", tokensURL,
+		httpmock.NewStringResponder(200, validAuthResponse))
+
 	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, deleteActionTemplateResponse))
 
 	actionTemplte, err := client.GetResourceActionTemplate(mockResourceID, mockActionID)
@@ -198,6 +230,7 @@ func TestGetResourceActionTemplate(t *testing.T) {
 
 	//test for reconfigure action tenplate
 	httpmock.Reset()
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, reconfigureActionTemplateResponse))
 	actionTemplte, err = client.GetResourceActionTemplate(mockResourceID, mockActionID)
 	utils.AssertNilError(t, err)
@@ -206,6 +239,7 @@ func TestGetResourceActionTemplate(t *testing.T) {
 	// invalid resource id
 	mockResourceID = "gd78tegd-0e737egd-jhdg"
 	httpmock.Reset()
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 	httpmock.RegisterResponder("GET", url,
 		httpmock.NewStringResponder(10101, invalidResourceErrorResponse))
 	actionTemplte, err = client.GetResourceActionTemplate(mockResourceID, mockActionID)
@@ -215,6 +249,7 @@ func TestGetResourceActionTemplate(t *testing.T) {
 	//invalid action id
 	mockActionID = "7364g-8736eg-87736"
 	httpmock.Reset()
+	httpmock.RegisterResponder("POST", tokensURL, httpmock.NewStringResponder(200, validAuthResponse))
 	httpmock.RegisterResponder("GET", url,
 		httpmock.NewStringResponder(50505, systemExceptionResponse))
 	actionTemplte, err = client.GetResourceActionTemplate(mockResourceID, mockActionID)
