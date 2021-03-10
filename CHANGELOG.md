@@ -1,6 +1,6 @@
 ## 3.0.2 (Unreleased)
 
-## 3.0.1 (Unreleased)
+## 3.0.1 (Feb 1, 2021)
 
 BUG FIXES:
 
