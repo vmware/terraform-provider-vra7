@@ -38,7 +38,7 @@ func TestValidateProvider(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterResponder("POST", fmt.Sprintf("%s/identity/api/tokens", mockBaseURL),
+	httpmock.RegisterResponder("POST", fmt.Sprintf(sdk.AuthenticationIdentityTokenAPI, mockBaseURL),
 		httpmock.NewStringResponder(200, validAuthResponse))
 
 	err := client.Authenticate()

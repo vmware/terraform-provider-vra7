@@ -59,7 +59,7 @@ func (c *APIClient) DoRequest(req *APIRequest, login bool) (*APIResponse, error)
 
 // Authenticate authenticates for the first time when the provider is invoked
 func (c *APIClient) Authenticate() error {
-	uri := fmt.Sprintf("%s"+Tokens, c.BaseURL)
+	uri := fmt.Sprintf(AuthenticationIdentityTokenAPI, c.BaseURL)
 	data := AuthenticationRequest{
 		Username: c.Username,
 		Password: c.Password,
