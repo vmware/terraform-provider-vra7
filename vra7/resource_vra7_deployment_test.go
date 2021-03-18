@@ -26,6 +26,9 @@ func TestConfigValidityFunction(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
 
+	httpmock.RegisterResponder("POST", fmt.Sprintf(sdk.AuthenticationIdentityTokenAPI, mockBaseURL),
+		httpmock.NewStringResponder(200, validAuthResponse))
+
 	catalogItemID := "dhbh-jhdv-ghdv-dhvdd"
 
 	path := fmt.Sprintf(sdk.RequestTemplateAPI, catalogItemID)
