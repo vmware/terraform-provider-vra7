@@ -1,6 +1,12 @@
-## 3.0.2 (Unreleased)
+## 3.0.2 (Mar 22, 2021)
 
-## 3.0.1 (Unreleased)
+IMPROVEMENTS:
+
+* Added Encoding For Query Params From Server URL [#96](https://github.com/vmware/terraform-provider-vra7/pull/96))
+* Fix unit tests [#112](https://github.com/vmware/terraform-provider-vra7/pull/112))
+
+
+## 3.0.1 (Feb 3, 2021)
 
 BUG FIXES:
 
