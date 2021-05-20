@@ -36,6 +36,7 @@ type ProviderSchema struct {
 	RequestStatus           string
 	DeploymentConfiguration map[string]interface{}
 	DeploymentDestroy       bool
+	DeploymentDestroyAction string
 	Lease                   int
 	DeploymentID            string
 	ResourceConfiguration   []sdk.ResourceConfigurationStruct
@@ -89,6 +90,11 @@ func resourceVra7Deployment() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+			"deployment_destroy_action": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "Destroy",
 			},
 			"resource_configuration": resourceConfigurationSchema(),
 			"lease_days": {
@@ -522,7 +528,7 @@ func resourceVra7DeploymentDelete(d *schema.ResourceData, meta interface{}) erro
 	deploymentID := d.Get("deployment_id").(string)
 	deploymentResourceActions, _ := vraClient.GetResourceActions(deploymentID)
 	deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
-	destroyActionID := deploymentActionsMap["Destroy"]
+	destroyActionID := deploymentActionsMap[p.DeploymentDestroyAction]
 	if p.DeploymentDestroy && destroyActionID != "" {
 		resourceActionTemplate, _ := vraClient.GetResourceActionTemplate(deploymentID, destroyActionID)
 		requestID, err := vraClient.PostResourceAction(deploymentID, destroyActionID, resourceActionTemplate)
@@ -621,6 +627,7 @@ func readProviderConfiguration(d *schema.ResourceData, vraClient *sdk.APIClient)
 		WaitTimeout:             d.Get("wait_timeout").(int) * 60,
 		ResourceConfiguration:   expandResourceConfiguration(d.Get("resource_configuration").(*schema.Set).List()),
 		DeploymentDestroy:       d.Get("deployment_destroy").(bool),
+		DeploymentDestroyAction: d.Get("deployment_destroy_action").(string),
 		DeploymentConfiguration: d.Get("deployment_configuration").(map[string]interface{}),
 	}
 
