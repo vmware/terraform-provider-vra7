@@ -15,8 +15,8 @@ A self-contained deployable integration between Terraform and vRealize Automatio
 Requirements
 ------------
 
-* [Terraform 0.9 or above](https://www.terraform.io/downloads.html)
-* [Go Language 1.11.4 or above](https://golang.org/dl/)
+* [Terraform 0.13 or above](https://www.terraform.io/downloads.html)
+* [Go Language 1.11.4 or above](https://golang.org/dl/) (optional)
 * [vRealize Automation 7.4 or below] The support has been stopped since provider v3.0.0. It is recommended to use the previous versions of the provider (v2.0.1 or below)
 * [vRealize Automation 7.5 or above](https://www.vmware.com/products/vrealize-automation.html)
 
@@ -54,6 +54,14 @@ for more information on provider upgrades, and how to set version constraints on
 ### A sample main.tf file is as follows:
 
 ```hcl
+terraform {
+    required_providers {
+      vra7 = {
+        source = "vmware/vra7"   
+      }
+    }
+}
+
 provider "vra7" {
   username = var.username
   password = var.password
@@ -199,6 +207,14 @@ Import functionality is now supported for the vra7_deployment resource. If there
 ### main.tf
 
 ```hcl
+terraform {
+    required_providers {
+      vra7 = {
+        source = "vmware/vra7"   
+      }
+    }
+}
+
 provider "vra7" {
   username = var.username
   password = var.password
@@ -218,7 +234,7 @@ A data source for vra7_deployment can also be created using either deployment ID
 Refer to the documentation [here](website/docs/d/vra7_deployment.html.markdown)
 
 
-Building the provider
+Building the provider (optional)
 ---------------------
 
 Clone repository to: `$GOPATH/src/github.com/vmware/terraform-provider-vra7`
@@ -235,7 +251,7 @@ $ cd $GOPATH/src/github.com/vmware/terraform-provider-vra7
 $ make build
 ```
 
-Developing the provider
+Developing the provider (optional)
 ---------------------------
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.11.4+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.

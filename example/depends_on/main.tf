@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    vra7 = {
+      source = "vmware/vra7"   
+    }
+  }
+}
+
 provider "vra7" {
   username = var.username
   password = var.password

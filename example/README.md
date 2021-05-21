@@ -16,7 +16,7 @@ Follow the steps mentioned in Main [README](../README.md)
 ## How to run the example
 1. cd <example directory>
 2. Copy the `terraform.tfvars.sample` to `terraform.tfvars`
-3. Copy the created plugin binary to example/
+3. Copy the created plugin binary to example/ (optional)
 4. Edit the `terraform.tfvars` to add the secret information
 5. To init command -  `terraform init`
 6. To plan command - `terraform plan`
