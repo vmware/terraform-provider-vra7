@@ -662,17 +662,17 @@ func waitForRequestCompletion(d *schema.ResourceData, meta interface{}, requestI
 	for i := 0; i < waitTimeout/sleepFor; i++ {
 		log.Info("Waiting for %d seconds before checking request status.", sleepFor)
 		time.Sleep(time.Duration(sleepFor) * time.Second)
-		reqestStatusView, _ := vraClient.GetRequestStatus(requestID)
-		status = reqestStatusView.Phase
+		requestStatusView, _ := vraClient.GetRequestStatus(requestID)
+		status = requestStatusView.Phase
 		d.Set("request_status", status)
 		log.Info("Checking to see the status of the request. Status: %s.", status)
 		if status == sdk.Successful {
 			log.Info("Request is SUCCESSFUL.")
 			return sdk.Successful, nil
 		} else if status == sdk.Failed {
-			return sdk.Failed, fmt.Errorf("Request failed \n %v ", reqestStatusView.RequestCompletion.CompletionDetails)
+			return sdk.Failed, fmt.Errorf("Request failed \n %v ", requestStatusView.RequestCompletion.CompletionDetails)
 		} else if status == sdk.Rejected {
-			return sdk.Rejected, fmt.Errorf("Request rejected \n %v ", reqestStatusView.RequestCompletion.CompletionDetails)
+			return sdk.Rejected, fmt.Errorf("Request rejected \n %v ", requestStatusView.RequestCompletion.CompletionDetails)
 		} else if status == sdk.InProgress {
 			log.Info("The request is still IN PROGRESS.")
 		} else {
