@@ -671,6 +671,8 @@ func waitForRequestCompletion(d *schema.ResourceData, meta interface{}, requestI
 			return sdk.Successful, nil
 		} else if status == sdk.Failed {
 			return sdk.Failed, fmt.Errorf("Request failed \n %v ", reqestStatusView.RequestCompletion.CompletionDetails)
+		} else if status == sdk.Rejected {
+			return sdk.Rejected, fmt.Errorf("Request rejected \n %v ", reqestStatusView.RequestCompletion.CompletionDetails)
 		} else if status == sdk.InProgress {
 			log.Info("The request is still IN PROGRESS.")
 		} else {
