@@ -1,5 +1,7 @@
 module github.com/vmware/terraform-provider-vra7
 
+go 1.16
+
 require (
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/go-hclog v0.9.0 // indirect
@@ -12,9 +14,6 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/op/go-logging v0.0.0-20160211212156-b2cb9fa56473
 	github.com/stretchr/testify v1.3.0
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c // indirect
 	gopkg.in/jarcoal/httpmock.v1 v1.0.0-20170412085702-cf52904a3cf0
 )
-
-go 1.13
