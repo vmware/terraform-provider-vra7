@@ -79,11 +79,13 @@ github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-cleanhttp v0.5.1
+## explicit
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-getter v1.3.1-0.20190627223108-da0323b9545e
 github.com/hashicorp/go-getter
 github.com/hashicorp/go-getter/helper/url
 # github.com/hashicorp/go-hclog v0.9.0
+## explicit
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.0.0
 github.com/hashicorp/go-multierror
@@ -95,8 +97,10 @@ github.com/hashicorp/go-safetemp
 # github.com/hashicorp/go-uuid v1.0.1
 github.com/hashicorp/go-uuid
 # github.com/hashicorp/go-version v1.2.0
+## explicit
 github.com/hashicorp/go-version
 # github.com/hashicorp/hcl v1.0.0
+## explicit
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/ast
 github.com/hashicorp/hcl/hcl/parser
@@ -118,6 +122,7 @@ github.com/hashicorp/hcl2/hcled
 github.com/hashicorp/hcl2/hclparse
 github.com/hashicorp/hcl2/hclwrite
 # github.com/hashicorp/hil v0.0.0-20190212132231-97b3a9cdfa93
+## explicit
 github.com/hashicorp/hil
 github.com/hashicorp/hil/ast
 github.com/hashicorp/hil/parser
@@ -125,6 +130,7 @@ github.com/hashicorp/hil/scanner
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
 # github.com/hashicorp/terraform v0.12.6
+## explicit
 github.com/hashicorp/terraform/addrs
 github.com/hashicorp/terraform/command/format
 github.com/hashicorp/terraform/config
@@ -187,6 +193,7 @@ github.com/mitchellh/colorstring
 # github.com/mitchellh/copystructure v1.0.0
 github.com/mitchellh/copystructure
 # github.com/mitchellh/go-homedir v1.1.0
+## explicit
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-testing-interface v1.0.0
 github.com/mitchellh/go-testing-interface
@@ -195,12 +202,15 @@ github.com/mitchellh/go-wordwrap
 # github.com/mitchellh/hashstructure v1.0.0
 github.com/mitchellh/hashstructure
 # github.com/mitchellh/mapstructure v1.1.2
+## explicit
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.1
+## explicit
 github.com/mitchellh/reflectwalk
 # github.com/oklog/run v1.0.0
 github.com/oklog/run
 # github.com/op/go-logging v0.0.0-20160211212156-b2cb9fa56473
+## explicit
 github.com/op/go-logging
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
@@ -215,6 +225,7 @@ github.com/satori/go.uuid
 github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/stretchr/testify v1.3.0
+## explicit
 github.com/stretchr/testify/assert
 # github.com/ulikunitz/xz v0.5.5
 github.com/ulikunitz/xz
@@ -261,6 +272,7 @@ golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
 # golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
+## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
@@ -346,4 +358,5 @@ google.golang.org/grpc/status
 google.golang.org/grpc/tap
 google.golang.org/grpc/test/bufconn
 # gopkg.in/jarcoal/httpmock.v1 v1.0.0-20170412085702-cf52904a3cf0
+## explicit
 gopkg.in/jarcoal/httpmock.v1
