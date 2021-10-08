@@ -1,3 +1,9 @@
+## 3.0.3 (Oct 8, 2021)
+
+BUG FIXES:
+
+* Allow to specify name of the destroyAction [#117](https://github.com/vmware/terraform-provider-vra7/pull/117))
+
 ## 3.0.2 (Mar 22, 2021)
 
 IMPROVEMENTS:
