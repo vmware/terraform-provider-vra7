@@ -1,15 +1,16 @@
-# cloud.google.com/go v0.101.1
+# cloud.google.com/go v0.102.1
 ## explicit
 cloud.google.com/go
 cloud.google.com/go/internal
 cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
-# cloud.google.com/go/compute v1.6.1
+# cloud.google.com/go/compute v1.7.0
+## explicit
 cloud.google.com/go/compute/metadata
 # cloud.google.com/go/iam v0.3.0
 cloud.google.com/go/iam
-# cloud.google.com/go/storage v1.22.0
+# cloud.google.com/go/storage v1.22.1
 cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
 cloud.google.com/go/storage/internal/apiv2
@@ -21,7 +22,7 @@ github.com/apparentlymart/go-cidr/cidr
 github.com/apparentlymart/go-textseg/textseg
 # github.com/armon/go-radix v1.0.0
 github.com/armon/go-radix
-# github.com/aws/aws-sdk-go v1.44.16
+# github.com/aws/aws-sdk-go v1.44.36
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -98,8 +99,16 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/googleapis/gax-go/v2 v2.4.0
+# github.com/google/martian/v3 v3.3.2
 ## explicit
+# github.com/google/uuid v1.3.0
+## explicit
+github.com/google/uuid
+# github.com/googleapis/enterprise-certificate-proxy v0.1.0
+## explicit
+github.com/googleapis/enterprise-certificate-proxy/client
+github.com/googleapis/enterprise-certificate-proxy/client/util
+# github.com/googleapis/gax-go/v2 v2.4.0
 github.com/googleapis/gax-go/v2
 github.com/googleapis/gax-go/v2/apierror
 github.com/googleapis/gax-go/v2/apierror/internal/proto
@@ -110,7 +119,7 @@ github.com/googleapis/go-type-adapters/adapters
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-cleanhttp v0.5.2
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-getter v1.5.11
+# github.com/hashicorp/go-getter v1.6.2
 ## explicit
 github.com/hashicorp/go-getter
 github.com/hashicorp/go-getter/helper/url
@@ -126,7 +135,7 @@ github.com/hashicorp/go-plugin/internal/plugin
 github.com/hashicorp/go-safetemp
 # github.com/hashicorp/go-uuid v1.0.1
 github.com/hashicorp/go-uuid
-# github.com/hashicorp/go-version v1.4.0
+# github.com/hashicorp/go-version v1.5.0
 ## explicit
 github.com/hashicorp/go-version
 # github.com/hashicorp/hcl v1.0.0
@@ -212,7 +221,7 @@ github.com/hashicorp/terraform-config-inspect/tfconfig
 github.com/hashicorp/yamux
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
-# github.com/klauspost/compress v1.15.4
+# github.com/klauspost/compress v1.15.6
 ## explicit
 github.com/klauspost/compress
 github.com/klauspost/compress/fse
@@ -315,7 +324,7 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
-# golang.org/x/net v0.0.0-20220517181318-183a9ca12b87
+# golang.org/x/net v0.0.0-20220615171555-694bf12d69de
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -325,7 +334,7 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
+# golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb
 golang.org/x/oauth2
 golang.org/x/oauth2/authhandler
 golang.org/x/oauth2/google
@@ -333,7 +342,7 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20220517195934-5e4e11fc645e
+# golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c
 ## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
@@ -342,12 +351,10 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df
-## explicit
+# golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.80.0
-## explicit
+# google.golang.org/api v0.84.0
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
 google.golang.org/api/iamcredentials/v1
@@ -381,7 +388,7 @@ google.golang.org/appengine/internal/socket
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/socket
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220505152158-f39f71e6c8f3
+# google.golang.org/genproto v0.0.0-20220617124728-180714bec0ad
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/iam/v1
 google.golang.org/genproto/googleapis/rpc/code
@@ -395,8 +402,7 @@ google.golang.org/genproto/googleapis/type/decimal
 google.golang.org/genproto/googleapis/type/expr
 google.golang.org/genproto/googleapis/type/fraction
 google.golang.org/genproto/googleapis/type/month
-# google.golang.org/grpc v1.46.2
-## explicit
+# google.golang.org/grpc v1.47.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
