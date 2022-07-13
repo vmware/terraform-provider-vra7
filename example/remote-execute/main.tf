@@ -33,7 +33,7 @@ resource "vra7_deployment" "this" {
     host     = self.resource_configuration[*].ip_address
     user     = var.ssh_user
     password = var.ssh_password
-    type     = ssh
+    type     = "ssh"
   }
 
   // Extend volume to second disk
