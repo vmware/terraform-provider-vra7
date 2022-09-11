@@ -160,7 +160,7 @@ func testAccCheckVra7DeploymentDestroy(s *terraform.State) error {
 func testGetResourceActions(t *testing.T) {
 	action, err := vraClient.GetResourceActions(catalogItemID)
 	if err != nil {
-			t.Errorf("Error executing GetResourceActions(): %s", err)
+			t.Errorf("Error executing GetResourceActions: %s", err)
 	}
 }
 
