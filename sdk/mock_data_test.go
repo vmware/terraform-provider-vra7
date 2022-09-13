@@ -1906,6 +1906,17 @@ var (
 		   "provider-DeleteVolumes":false
 		}
 	 }`
+    
+	deleteActionResponse = `{  
+	  "content":[
+		{
+			"@type":"ConsumerResourceOperation",
+			"id":"1a22752b-31a9-462e-a38a-e42b60c08a78",
+			"name":"Destroy",
+			"type":"ACTION"
+		}
+		]
+	 }`
 
 	deploymentResponse = ` {
 		"id":"226568c7-b5c8-4818-82b4-f8b0347985c2",

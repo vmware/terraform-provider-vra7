@@ -202,6 +202,35 @@ func TestGetRequestResources(t *testing.T) {
 	utils.AssertNil(t, resources)
 }
 
+func TestGetResourceActions(t *testing.T) {
+	httpmock.ActivateNonDefault(client.Client)
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterResponder("POST", authenticationAPI,
+		httpmock.NewStringResponder(200, validAuthResponse))
+
+	mockResourceID := "0786a919-3545-408d-9091-cc8fe24e7790"
+
+	// test for delete action 
+	url := client.BuildEncodedURL(fmt.Sprintf(ResourceActions, mockResourceID), nil)
+	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(200, deleteActionResponse))
+
+	action, err := client.GetResourceActions(mockResourceID)
+	utils.AssertNilError(t, err)
+	utils.AssertNotNil(t, action)
+
+	// internal server error
+	mockResourceID = "gd78tegd-0e737egd-jhdg"
+	url = client.BuildEncodedURL(fmt.Sprintf(ResourceActions, mockResourceID), nil)
+	httpmock.Reset()
+	httpmock.RegisterResponder("POST", authenticationAPI,
+		httpmock.NewStringResponder(200, validAuthResponse))
+	httpmock.RegisterResponder("GET", url, httpmock.NewStringResponder(50505, systemExceptionResponse))
+	action, err = client.GetResourceActions(mockResourceID)
+	utils.AssertNotNilError(t, err)
+	utils.AssertNil(t, action)
+}
+
 func TestGetResourceActionTemplate(t *testing.T) {
 	httpmock.ActivateNonDefault(client.Client)
 	defer httpmock.DeactivateAndReset()
