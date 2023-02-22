@@ -3,7 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -107,7 +107,7 @@ func FromAPIRequestToHTTPRequest(apiReq *APIRequest) (*http.Request, error) {
 
 // FromHTTPRespToAPIResp converts Http response to API response
 func FromHTTPRespToAPIResp(resp *http.Response) (*APIResponse, error) {
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
