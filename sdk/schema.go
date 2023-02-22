@@ -117,7 +117,7 @@ type ResourceDataEntry struct {
 	Value map[string]interface{} `json:"value,omitempty"`
 }
 
-//CatalogRequest - A structure that captures a vRA catalog request.
+// CatalogRequest - A structure that captures a vRA catalog request.
 type CatalogRequest struct {
 	ID           string      `json:"id"`
 	IconID       string      `json:"iconId"`
@@ -169,7 +169,7 @@ type CatalogRequest struct {
 	} `json:"catalogItemRef"`
 }
 
-//CatalogItemRequestTemplate - A structure that captures a catalog request template, to be filled in and POSTED.
+// CatalogItemRequestTemplate - A structure that captures a catalog request template, to be filled in and POSTED.
 type CatalogItemRequestTemplate struct {
 	Type            string                 `json:"type,omitempty"`
 	CatalogItemID   string                 `json:"catalogItemId,omitempty"`
@@ -180,13 +180,13 @@ type CatalogItemRequestTemplate struct {
 	Data            map[string]interface{} `json:"data,omitempty"`
 }
 
-//catalogName - This struct holds catalog name from json response.
+// catalogName - This struct holds catalog name from json response.
 type catalogName struct {
 	Name string `json:"name"`
 	ID   string `json:"catalogItemId"`
 }
 
-//CatalogItem - This struct holds the value of response of catalog item list
+// CatalogItem - This struct holds the value of response of catalog item list
 type CatalogItem struct {
 	CatalogItem catalogName `json:"catalogItem"`
 }

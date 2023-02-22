@@ -49,7 +49,7 @@ func (ar *APIRequest) AddHeader(key, val string) {
 	ar.Headers[key] = val
 }
 
-//ContentType returns the content type set in the request header
+// ContentType returns the content type set in the request header
 func (ar *APIRequest) ContentType() string {
 	if ar.Headers == nil {
 		return ""

@@ -8,8 +8,8 @@ import (
 	"github.com/vmware/terraform-provider-vra7/sdk"
 )
 
-//Provider - This function initializes the provider schema
-//also the config function and resource mapping
+// Provider - This function initializes the provider schema
+// also the config function and resource mapping
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema:        providerSchema(),
@@ -23,7 +23,7 @@ func Provider() terraform.ResourceProvider {
 	}
 }
 
-//providerSchema - To set provider fields
+// providerSchema - To set provider fields
 func providerSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"username": {
@@ -61,7 +61,7 @@ func providerSchema() map[string]*schema.Schema {
 	}
 }
 
-//Function use - To authenticate terraform provider
+// Function use - To authenticate terraform provider
 func providerConfig(r *schema.ResourceData) (interface{}, error) {
 	//Create a client handle to perform REST calls for various operations upon the resource
 
