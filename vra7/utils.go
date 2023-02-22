@@ -9,7 +9,7 @@ import (
 )
 
 // UpdateResourceConfigurationMap updates the resource configuration with
-//the deployment resource data if there is difference
+// the deployment resource data if there is difference
 // between the config data and deployment data, return true
 func UpdateResourceConfigurationMap(
 	resourceConfiguration map[string]interface{}, vmData map[string]map[string]interface{}) (map[string]interface{}, bool) {

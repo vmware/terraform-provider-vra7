@@ -15,7 +15,7 @@ type APIResponse struct {
 	Location   string
 }
 
-//APIRequest struct
+// APIRequest struct
 type APIRequest struct {
 	Method  string
 	URL     string
@@ -28,14 +28,14 @@ type APIError struct {
 	Errors []Error `json:"errors"`
 }
 
-//Error API Error
+// Error API Error
 type Error struct {
 	Code          int    `json:"code"`
 	Message       string `json:"message"`
 	SystemMessage string `json:"systemMessage"`
 }
 
-//AuthResponse - This struct contains response of user authentication call.
+// AuthResponse - This struct contains response of user authentication call.
 type AuthResponse struct {
 	Expires time.Time `json:"expires"`
 	ID      string    `json:"id"`

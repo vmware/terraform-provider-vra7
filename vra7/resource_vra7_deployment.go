@@ -228,7 +228,7 @@ func updateRequestTemplate(templateInterface map[string]interface{}, field strin
 }
 
 // This function updates the state of a vRA 7 Deployment when changes to a Terraform file are applied.
-//The update is performed on the Deployment using supported (day-2) actions.
+// The update is performed on the Deployment using supported (day-2) actions.
 func resourceVra7DeploymentUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Info("Updating the resource vra7_deployment with request id %s", d.Id())
@@ -510,7 +510,7 @@ func resourceVra7DeploymentRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-//Function use - To delete resources which are created by terraform and present in state file
+// Function use - To delete resources which are created by terraform and present in state file
 func resourceVra7DeploymentDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Info("Deleting the resource vra7_deployment with request id %s", d.Id())
 	vraClient := meta.(*sdk.APIClient)
