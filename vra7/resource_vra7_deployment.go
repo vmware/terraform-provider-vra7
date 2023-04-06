@@ -526,7 +526,11 @@ func resourceVra7DeploymentDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	deploymentID := d.Get("deployment_id").(string)
-	deploymentResourceActions, _ := vraClient.GetResourceActions(deploymentID)
+	deploymentResourceActions, err := vraClient.GetResourceActions(deploymentID)
+	if err != nil {
+		log.Errorf("Obtaining resource action failed with the error: %v ", err)
+		return err
+	}
 	deploymentActionsMap := GetActionNameIDMap(deploymentResourceActions)
 	destroyActionID := deploymentActionsMap[p.DeploymentDestroyAction]
 	if p.DeploymentDestroy && destroyActionID != "" {
