@@ -124,11 +124,7 @@ func (n *NodeDestroyResourceInstance) EvalTree() EvalNode {
 	addr := n.ResourceInstanceAddr()
 
 	// Get our state
-	rs := n.ResourceState
-	var is *states.ResourceInstance
-	if rs != nil {
-		is = rs.Instance(n.InstanceKey)
-	}
+	is := n.instanceState
 	if is == nil {
 		log.Printf("[WARN] NodeDestroyResourceInstance for %s with no state", addr)
 	}
@@ -285,6 +281,13 @@ var (
 	_ GraphNodeReferenceable = (*NodeDestroyResource)(nil)
 	_ GraphNodeReferencer    = (*NodeDestroyResource)(nil)
 	_ GraphNodeEvalable      = (*NodeDestroyResource)(nil)
+
+	// FIXME: this is here to document that this node is both
+	// GraphNodeProviderConsumer by virtue of the embedded
+	// NodeAbstractResource, but that behavior is not desired and we skip it by
+	// checking for GraphNodeNoProvider.
+	_ GraphNodeProviderConsumer = (*NodeDestroyResource)(nil)
+	_ GraphNodeNoProvider       = (*NodeDestroyResource)(nil)
 )
 
 func (n *NodeDestroyResource) Name() string {
@@ -318,4 +321,24 @@ func (n *NodeDestroyResource) EvalTree() EvalNode {
 	return &EvalForgetResourceState{
 		Addr: n.ResourceAddr().Resource,
 	}
+}
+
+// GraphNodeResource
+func (n *NodeDestroyResource) ResourceAddr() addrs.AbsResource {
+	return n.NodeAbstractResource.ResourceAddr()
+}
+
+// GraphNodeSubpath
+func (n *NodeDestroyResource) Path() addrs.ModuleInstance {
+	return n.NodeAbstractResource.Path()
+}
+
+// GraphNodeNoProvider
+// FIXME: this should be removed once the node can be separated from the
+// Internal NodeAbstractResource behavior.
+func (n *NodeDestroyResource) NoProvider() {
+}
+
+type GraphNodeNoProvider interface {
+	NoProvider()
 }
