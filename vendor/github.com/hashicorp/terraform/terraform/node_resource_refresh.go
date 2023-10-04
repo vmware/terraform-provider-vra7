@@ -18,6 +18,10 @@ import (
 // NodeRefreshableManagedResourceInstance. Resource count orphans are also added.
 type NodeRefreshableManagedResource struct {
 	*NodeAbstractResource
+
+	// We attach dependencies to the Resource during refresh, since the
+	// instances are instantiated during DynamicExpand.
+	Dependencies []addrs.AbsResource
 }
 
 var (
@@ -27,7 +31,13 @@ var (
 	_ GraphNodeReferencer           = (*NodeRefreshableManagedResource)(nil)
 	_ GraphNodeResource             = (*NodeRefreshableManagedResource)(nil)
 	_ GraphNodeAttachResourceConfig = (*NodeRefreshableManagedResource)(nil)
+	_ GraphNodeAttachDependencies   = (*NodeRefreshableManagedResource)(nil)
 )
+
+// GraphNodeAttachDependencies
+func (n *NodeRefreshableManagedResource) AttachDependencies(deps []addrs.AbsResource) {
+	n.Dependencies = deps
+}
 
 // GraphNodeDynamicExpandable
 func (n *NodeRefreshableManagedResource) DynamicExpand(ctx EvalContext) (*Graph, error) {
@@ -58,6 +68,7 @@ func (n *NodeRefreshableManagedResource) DynamicExpand(ctx EvalContext) (*Graph,
 		// Add the config and state since we don't do that via transforms
 		a.Config = n.Config
 		a.ResolvedProvider = n.ResolvedProvider
+		a.Dependencies = n.Dependencies
 
 		return &NodeRefreshableManagedResourceInstance{
 			NodeAbstractResourceInstance: a,
@@ -140,7 +151,7 @@ func (n *NodeRefreshableManagedResourceInstance) EvalTree() EvalNode {
 	// Eval info is different depending on what kind of resource this is
 	switch addr.Resource.Resource.Mode {
 	case addrs.ManagedResourceMode:
-		if n.ResourceState == nil {
+		if n.instanceState == nil {
 			log.Printf("[TRACE] NodeRefreshableManagedResourceInstance: %s has no existing state to refresh", addr)
 			return n.evalTreeManagedResourceNoState()
 		}
@@ -178,7 +189,7 @@ func (n *NodeRefreshableManagedResourceInstance) evalTreeManagedResource() EvalN
 
 	// This happened during initial development. All known cases were
 	// fixed and tested but as a sanity check let's assert here.
-	if n.ResourceState == nil {
+	if n.instanceState == nil {
 		err := fmt.Errorf(
 			"No resource state attached for addr: %s\n\n"+
 				"This is a bug. Please report this to Terraform with your configuration\n"+
@@ -203,6 +214,11 @@ func (n *NodeRefreshableManagedResourceInstance) evalTreeManagedResource() EvalN
 				Output: &state,
 			},
 
+			&EvalRefreshDependencies{
+				State:        &state,
+				Dependencies: &n.Dependencies,
+			},
+
 			&EvalRefresh{
 				Addr:           addr.Resource,
 				ProviderAddr:   n.ResolvedProvider,
@@ -217,6 +233,7 @@ func (n *NodeRefreshableManagedResourceInstance) evalTreeManagedResource() EvalN
 				ProviderAddr:   n.ResolvedProvider,
 				ProviderSchema: &providerSchema,
 				State:          &state,
+				Dependencies:   &n.Dependencies,
 			},
 		},
 	}
@@ -276,6 +293,7 @@ func (n *NodeRefreshableManagedResourceInstance) evalTreeManagedResourceNoState(
 				ProviderAddr:   n.ResolvedProvider,
 				ProviderSchema: &providerSchema,
 				State:          &state,
+				Dependencies:   &n.Dependencies,
 			},
 
 			// We must also save the planned change, so that expressions in
