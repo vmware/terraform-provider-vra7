@@ -9,7 +9,7 @@ resource "vra7_deployment" "this" {
   count             = 1
   catalog_item_name = "CentOS 7.0 x64"
   description = "this description"
-  reason = "this reason"
+  reasons = "this reason"
   lease_days = 10
 
   deployment_configuration = {
