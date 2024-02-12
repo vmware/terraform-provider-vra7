@@ -34,6 +34,7 @@ const (
 	InProgress             = "IN_PROGRESS"
 	Successful             = "SUCCESSFUL"
 	Failed                 = "FAILED"
+	Rejected               = "REJECTED"
 	Submitted              = "SUBMITTED"
 	InfrastructureVirtual  = "Infrastructure.Virtual"
 	DeploymentResourceType = "composition.resource.type.deployment"
