@@ -1,11 +1,10 @@
 Terraform provider for VMware vRealize Automation 7
 ==================
 
+> **_NOTE:_** The [End of General Support for VMware vRealize Suite7.x](https://knowledge.broadcom.com/external/article/326048/end-of-general-support-for-vmware-vreali.html) (which includes vRA 7.x, vRops 7.x and vRLI 7.x) was on September 1st, 2022. Therefore, VMware has also ended the active development of this Terraform Provider, so this repository will no longer be updated. We recommend users migrate to the [VMware vRealize Automation v8 Provider](https://github.com/vmware/terraform-provider-vra).
+
 - Website: https://www.terraform.io
 - Documentation: https://www.terraform.io/docs/providers/vra7/index.html
-- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
-
-<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
 
 Introduction
 ------------
