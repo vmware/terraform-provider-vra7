@@ -8,7 +8,7 @@ description: |-
 
 # VMware vRA7 Provider
 
-> **_NOTE:_** The [End of General Support for VMware vRealize Suite7.x](https://knowledge.broadcom.com/external/article/326048/end-of-general-support-for-vmware-vreali.html) (which includes vRA 7.x, vRops 7.x and vRLI 7.x) was on September 1st, 2022. Therefore, VMware has also ended the active development of this Terraform Provider. We recommend users migrate to the [VMware vRealize Automation v8 Provider](https://registry.terraform.io/providers/vmware/vra/latest/docs).
+> **_NOTE:_** The [End of General Support for VMware vRealize Suite7.x](https://knowledge.broadcom.com/external/article/326048/end-of-general-support-for-vmware-vreali.html) (which includes vRA 7.x, vRops 7.x and vRLI 7.x) was on September 1st, 2022. Therefore, **VMware has ended the active development of this Terraform Provider**. We recommend users migrate to the [VMware vRealize Automation v8 Provider](https://registry.terraform.io/providers/vmware/vra/latest/docs).
 
 The VMware vRA7 provider gives Terraform the ability to work with [VMware vRealize
 Automation 7][vmware-vra]. This provider can be used to deploy exisiting blueprints
